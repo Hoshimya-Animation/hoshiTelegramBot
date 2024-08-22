@@ -188,7 +188,7 @@ class AnimeApp:
             self.__animeId = search['data'][0]['mal_id']  # Get the anime ID from the search results
             dataAnime = self.request_api.anime(self.__animeId)  # Fetch detailed anime data using the anime ID
             self.__animeTitle = self.__dataTranslated(dataAnime['data']['title_japanese'], 'ja')  # Translate the anime title to Japanese
-            # #Translate the anime title to Japanese to English and any languague
+            # Translate the anime title to Japanese to English and any languague
             self.__animeTitle = "{} ({})".format(self.__dataTranslated(self.__animeTitle,srcLanguage='ja',defaultLang=True),self.__animeTitle)
             self.__animeTitle_Japanese = dataAnime['data']['title_japanese']  # Store the original Japanese title
             listGenders = [gen['name'] for gen in dataAnime['data']['genres']]  # Extract the genres of the anime
@@ -216,6 +216,8 @@ class AnimeApp:
                 self.__animeId = id_anime_rand['data']['mal_id']  # Get the anime ID from the random anime data
                 dataAnime = self.request_api.anime(self.__animeId)  # Fetch detailed anime data using the anime ID
                 self.__animeTitle = self.__dataTranslated(dataAnime['data']['title_japanese'], 'ja')  # Translate the anime title to Japanese
+                # Translate the anime title to Japanese to English and any languague
+                self.__animeTitle = "{} ({})".format(self.__dataTranslated(self.__animeTitle,srcLanguage='ja',defaultLang=True),self.__animeTitle)
                 self.__animeTitle_Japanese = dataAnime['data']['title_japanese']  # Store the original Japanese title
                 listGenders = [gen['name'] for gen in dataAnime['data']['genres']]  # Extract the genres of the anime
                 self.translated_gender = [self.__dataTranslated(g, 'en') for g in listGenders]  # Translate the genres to English
