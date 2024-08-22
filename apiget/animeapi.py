@@ -155,7 +155,7 @@ class AnimeApp:
         """
         if defaultLang!=True:
             sourceData = self.translator.translate(sourceData, src=srcLanguage, dest=self.languague_app).text
-        elif defaultLang:
+        elif defaultLang==True:
             sourceData = self.translator.translate(sourceData, src=srcLanguage, dest='en').text
         new_sourceData = sourceData.replace('\u200b', '').replace('\n\n', '')
         return str(new_sourceData)
