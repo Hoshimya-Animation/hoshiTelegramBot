@@ -153,10 +153,10 @@ class AnimeApp:
         str
             The translated and cleaned data.
         """
-        if defaultLang!=True:
-            sourceData = self.translator.translate(sourceData, src=srcLanguage, dest=self.languague_app).text
-        elif defaultLang==True:
+        if defaultLang:
             sourceData = self.translator.translate(sourceData, src=srcLanguage, dest='en').text
+        else:
+            sourceData = self.translator.translate(sourceData, src=srcLanguage, dest=self.languague_app).text
         new_sourceData = sourceData.replace('\u200b', '').replace('\n\n', '')
         return str(new_sourceData)
     
