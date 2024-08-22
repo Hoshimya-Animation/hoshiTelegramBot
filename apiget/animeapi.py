@@ -136,7 +136,7 @@ class AnimeApp:
         self.option = option.lower()
         return self.option
 
-    def __dataTranslated(self, sourceData, srcLanguage) -> str:
+    def __dataTranslated(self, sourceData, srcLanguage,defaultLang=False) -> str:
         """
         Translate the source data from the source language to the app's language.
 
@@ -146,16 +146,20 @@ class AnimeApp:
             The data to be translated.
         srcLanguage : str
             The source language of the data.
-
+        defaultLang: bool
+            Change language to English.
         Returns
         -------
         str
             The translated and cleaned data.
         """
-        sourceData = self.translator.translate(sourceData, src=srcLanguage, dest=self.languague_app).text
+        if defaultLang!=True:
+            sourceData = self.translator.translate(sourceData, src=srcLanguage, dest=self.languague_app).text
+        elif defaultLang:
+            sourceData = self.translator.translate(sourceData, src=srcLanguage, dest='en').text
         new_sourceData = sourceData.replace('\u200b', '').replace('\n\n', '')
         return str(new_sourceData)
-
+    
 
     def __dataRating(self) -> str:
         # Process the rating data.
@@ -184,6 +188,8 @@ class AnimeApp:
             self.__animeId = search['data'][0]['mal_id']  # Get the anime ID from the search results
             dataAnime = self.request_api.anime(self.__animeId)  # Fetch detailed anime data using the anime ID
             self.__animeTitle = self.__dataTranslated(dataAnime['data']['title_japanese'], 'ja')  # Translate the anime title to Japanese
+            # #Translate the anime title to Japanese to English and any languague
+            self.__animeTitle = "{} ({})".format(self.__dataTranslated(self.__animeTitle,srcLanguage='ja',defaultLang=True),self.__animeTitle)
             self.__animeTitle_Japanese = dataAnime['data']['title_japanese']  # Store the original Japanese title
             listGenders = [gen['name'] for gen in dataAnime['data']['genres']]  # Extract the genres of the anime
             self.translated_gender = [self.__dataTranslated(g, 'en') for g in listGenders]  # Translate the genres to English
