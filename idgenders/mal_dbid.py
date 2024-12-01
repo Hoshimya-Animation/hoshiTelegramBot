@@ -8,7 +8,7 @@ from functools import lru_cache
 @lru_cache(100)
 def getIDAnime() -> list:
     # Send a GET request to the specified URL and parse the JSON response
-    get_json = requests.get('https://raw.githubusercontent.com/seanbreckenridge/mal-id-cache/master/cache/anime_cache.json').json()
+    get_json = requests.get('https://raw.githubusercontent.com/purarue/mal-id-cache/refs/heads/master/cache/anime_cache.json').json()
     # Combine the 'sfw' and 'nsfw' lists from the JSON response and sort them
     id_anime = sorted(get_json['sfw'] + get_json['nsfw'])
     # Return the sorted list of anime IDs
@@ -18,7 +18,7 @@ def getIDAnime() -> list:
 @lru_cache(100)
 def getIDManga() -> list:
     # Send a GET request to the specified URL and parse the JSON response
-    get_json = requests.get('https://raw.githubusercontent.com/seanbreckenridge/mal-id-cache/master/cache/manga_cache.json').json()
+    get_json = requests.get('https://raw.githubusercontent.com/purarue/mal-id-cache/refs/heads/master/cache/manga_cache.json').json()
     # Combine the 'sfw' and 'nsfw' lists from the JSON response and sort them
     id_manga = sorted(get_json['sfw'] + get_json['nsfw'])
     # Return the sorted list of manga IDs
