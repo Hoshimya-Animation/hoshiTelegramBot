@@ -18,7 +18,7 @@ hstspreload==2024.7.1
 httpcore==1.0.7
 httpx>=0.13.3,<=0.27.2
 hyperframe==5.2.0
-idna==2.10
+idna==3.7
 jikanpy-v4==1.0.2
 jiter==0.8.0
 libretranslatepy==2.1.1
