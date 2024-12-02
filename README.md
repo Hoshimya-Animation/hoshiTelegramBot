@@ -27,41 +27,26 @@ Welcome to the **hoshiiTelegramBot**! This adorable Telegram bot fetches anime a
 > [!NOTE]
 > Previously, you should have created your Telegram Bot. Please, If you don't do it yet, check the official **[documentation](https://core.telegram.org/bots#how-do-i-create-a-bot)** 🤖.
 
-1. Clone the repository:
+
+1. Create and activate your virtual environment.
+  ```bash
+    source /.../my-env/bin/activate
+  ```
+2. Inside of your virtual enviroment, clone the repository:
     ```bash
     git clone https://github.com/Hoshimya-Animation/hoshiTelegramBot
     cd hoshiTelegramBot
     ```
 
-2. Install the required dependencies:
+3. Install the required dependencies:
     ```bash
     pip3 install -r requirements.txt
     ```
->[!IMPORTANT]
-> If a message error apears about googletrans about httpx version or jikanApi or TelegramBot, please follow this steps.
 
-- Install manually **httpx**.
+4. Open the file **main.py** and replace your Telegram Token of your Bot on ```TELEGRM_TOKEN```, i.e. ```"123+2"``` .
 
-  ```bash
-  # Install httpx version greater equal to 0.13.3
-  pip3 install "httpx>=0.13.3"
-  pip3 install googletrans==4.0.0-rc1
-  ```
-- For Jikan Api.
 
-  ```bash
-  # Install api
-  pip3 install jikanpy-v4
-  ```
-- Finally TelegramBot.
-
-  ```bash
-  # Install python-telegram-bot
-  pip3 install python-telegram-bot
-  ```
-3. Open the file **main.py** and replace your Telegram Token of your Bot on ```TELEGRM_TOKEN```, i.e. ```"123+2"``` .
-
-4. Run the bot: 🤖
+5. Run the bot: 🤖
     ```bash
     python main.py
     ```
@@ -77,28 +62,9 @@ Add the bot to your Telegram and start chatting with it! Use the following comma
 - `/hoshii [gender]` - Anime suggestion by the gender 🌍🍱 (Action, Comedy, Horror, Sports, Adventure, Drama, Mystery, Supernatural, Avant Garde, Fantasy, Romance,Suspense, Award Winning, Girls Love, Sci-Fi, Boys Love,Gourmet, Slice of Life, Ecchi, Erotica, Hentai).
 - `/help` - Give you information about my functions 🆘❔.
 
-## 🔧 Configuration
-
-> [!NOTE]
-> If you run ```main.py``` the interpreter shows you this message ```AttributeError: module 'httpcore' has no attribute 'SyncHTTPTransport```
-
-> [!IMPORTANT]
-> Googletrans has an important issue nowadays. HTTPX package version  for Googletrans is 0.13.0, on other hand, Python-Telegram-Bot requires the version 0.27.0. Therefore there is a problem. However, you can fix temporaly this issue. 
-    
-- In a new terminal use this command
-
-    ```bash
-    pip list -v
-    ```
-> [!NOTE]
-> This command shows you all packages installed with pip.
-
-- Then, search for the package *googletrans*🔤, go to the path where it's installed, and **ONLY MODIFY** ⚠️ the file ***client.py***. In this file, on line 62, you can comment it out and below it, type this:
-
-    ```python
-    proxies: typing.Dict[str, httpcore.AsyncHTTPProxy] = None,
-    ```
-- Finally, save the document. 📄
+## NEW UPDATES (Comming Soon)
+* Do you want to listen your favourite anime openings and endings? We're workin' on it
+* Get any recomendation about any manga? (In progress)
 
 
 
