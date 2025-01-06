@@ -162,8 +162,8 @@ class songsAnime:
                 if file.endswith('.m4a'):
                     tagName = MP4(f"{os.path.join(root,file)}")  # Create an MP4 object with the downloaded file
                     tagName.delete()  # Delete existing metadata
-                    tagName['title'] = u"{}".format(self.songName)  # Set the title metadata
-                    tagName['artist'] = u"{}".format(self.singerName)  # Set the artist metadata
+                    tagName['title'] = u"{}".format(f'{yt.title}')  # Set the title metadata
+                    tagName['artist'] = u"{}".format(f'{yt.author}')  # Set the artist metadata
                     tagName.save()  # Save the updated metadata
         self.moveFiles()  # Move the downloaded files to the specified directory
     
@@ -222,7 +222,7 @@ class songsAnime:
         Returns:
             str: The YouTube video URL.
         """
-        get_url = YoutubeSearch(f'{self.songName} by {self.singerName}', max_results=1).to_dict()
+        get_url = YoutubeSearch(f'{self.singerName} {self.songName}', max_results=1).to_dict()
         get_url = get_url[0]['url_suffix']
         uri = self.__cutDataYouTube(get_url)
         url = 'http://youtube.com/watch?v=' + uri
