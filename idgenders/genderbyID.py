@@ -2,19 +2,46 @@
 from jikanpy import Jikan
 # Import the getIDAnime function from the mal_dbid module, which is presumably used to get the ID of an anime
 from mal_dbid import getIDAnime
+# Import the getIDManga function from the mal_dbid module, which is presumably used to get the ID of a manga
+from mal_dbid import getIDManga
 # Import the json module, which is used for working with JSON data
 import json
 # Import the os module, which provides a way of using operating system dependent functionality
 import os
 # Import the time module, which provides various time-related functions
 import time
+# Import the sys module to access command-line arguments
+import sys 
+
+
 
 # Define a class named gendersIDs
 class gendersIDs:
+    """ A class to handle and categorize gender data for Anime and Manga. 
+        Attributes: 
+            animeID (list): List of Anime IDs. 
+            mangaID (list): List of Manga IDs. 
+            optionRaw (str): Specifies whether 'Anime' or 'Manga' data is being handled. 
+            get_genders (dict): Dictionary to store gender data. 
+            gender (str): Attribute for individual gender. 
+            contact (Jikan): Instance of the Jikan class for API interaction. 
+            list_genders (list): List of predefined genre categories. 
+            values_ids (list): List to store IDs of various genres. 
+            dicm (dict): Dictionary for additional data. 
+            Methods: commonList(listg, id_g): Updates genre lists with the given ID. 
+            listDic(): Creates a dictionary where genres are mapped to their indices. 
+            uploadDict(): Populates the dicm dictionary and creates the get_genders dictionary. 
+            returnJsonDict(): Saves the get_genders dictionary to a JSON file based on the optionRaw attribute. 
+            runList(): Processes the list of IDs, fetches details from the API, and categorizes them into genres. 
+    """
     # Define the constructor method for the class
-    def __init__(self, animeIDS) -> None:
-        # Initialize the animeID attribute with the provided animeIDS parameter
-        self.animeID = animeIDS
+    def __init__(self, IDS,optionName) -> None:
+        # Initialize the animeID attribute with the provided IDS parameter
+        self.animeID = IDS
+        # Initialize the mangaID attribute with the provided IDS parameter
+        self.mangaID = IDS
+        # Initialize the optionRaw attribute with the provieded optionName parameter
+        self.optionRaw = optionName
         # Initialize an empty dictionary to store genders
         self.get_genders = {}
         # Initialize an empty string for gender
@@ -107,51 +134,101 @@ class gendersIDs:
     
     # Define a method named returnJsonDict within the gendersIDs class
     def returnJsonDict(self):
-        # Define the path to the JSON file
-        path = './idsgen.json'
-        # Check if the file already exists
-        if os.path.isfile(path):
-            # If the file exists, open it in write mode and dump the get_genders dictionary into it
-            with open('idsgen.json', 'w') as file:
-                json.dump(self.get_genders, file, indent=4)
-        else:
-            # If the file does not exist, create it and dump the get_genders dictionary into it
-            with open('idsgen.json', 'a') as file:
-                json.dump(self.get_genders, file, indent=4)
-    
+        if self.optionRaw == 'Anime':
+            # Define the path to the JSON file
+            path = './idsgenAnime.json'
+            # Check if the file already exists
+            if os.path.isfile(path):
+                # If the file exists, open it in write mode and dump the get_genders dictionary into it
+                with open('idsgenAnime.json', 'w') as file:
+                    json.dump(self.get_genders, file, indent=4)
+            else:
+                # If the file does not exist, create it and dump the get_genders dictionary into it
+                with open('idsgenAnime.json', 'a') as file:
+                    json.dump(self.get_genders, file, indent=4)
+        elif self.optionRaw == 'Manga':
+            # Define the path to the JSON file
+            path = './idsgenManga.json'
+            # Check if the file already exists
+            if os.path.isfile(path):
+                # If the file exists, open it in write mode and dump the get_genders dictionary into it
+                with open('idsgenManga.json', 'w') as file:
+                    json.dump(self.get_genders, file, indent=4)
+            else:
+                # If the file does not exist, create it and dump the get_genders dictionary into it
+                with open('idsgenManga.json', 'a') as file:
+                    json.dump(self.get_genders, file, indent=4)
     # Define a method named runList within the gendersIDs class
-    def runList(self):
-        # Initialize counters i and r to 0
-        i, r = 0, 0
-        # Iterate over each anime ID in the animeID list
-        for num in self.animeID:
-            # If r is not equal to 3
-            if r != 3:
-                try:
-                    # Fetch anime details using the Jikan API
-                    ids = self.contact.anime(num)
-                    # Extract the list of genre names from the fetched data
-                    ll = [genre['name'] for genre in ids['data']['genres']]
-                    # Call the commonList method to update genre lists with the current anime ID
-                    self.commonList(ll, num)
-                except:pass
+    def runList(self): 
+        # Set the correct method for fetching data based on the option
+        ids_method = self.contact.anime if self.optionRaw == "Anime" else self.contact.manga
+        # Set the correct list of IDs based on the option
+        id_list = self.animeID if self.optionRaw == "Anime" else self.mangaID
+        # Initialize counter r to 0
+        r = 0
+        # Enumerate over the list of IDs
+        for i, num in enumerate(id_list):
+            try:
+                # Fetch details using the selected method (anime or manga)
+                ids = ids_method(num)
+                # Extract the list of genre names from the fetched data
+                genres = [genre['name'] for genre in ids['data']['genres']]
+                # Call the commonList method to update genre lists with the current ID
+                self.commonList(genres, num)
                 # Print the current registration number
-                print("Registo: ", i + 1, flush=True)
-                # Increment the counters i and r
-                i += 1
+                print(f"Registo: {i+1}/{len(id_list)}", flush=True)
+                # Increment the counter r
                 r += 1
-            # If r is equal to 3
-            elif r == 3:
-                # Sleep for 3 seconds
-                time.sleep(3)
-                # Reset the counter r to 0
-                r = 0
+                # If r is equal to 3, sleep for 3 seconds and reset r
+                if r == 3:
+                    time.sleep(3)
+                    # Reset the counter r to 0
+                    r = 0
+            except:
+                # If an exception occurs, pass and continue
+                pass
         # Call the uploadDict method to update the get_genders dictionary
         self.uploadDict()
         # Call the returnJsonDict method to save the dictionary to a JSON file
         self.returnJsonDict()
 
-# Create an instance of the gendersIDs class with anime IDs obtained from the getIDAnime function
-update_json = gendersIDs(getIDAnime())
-# Call the runList method to process the anime IDs and update the JSON file
-update_json.runList()
+
+def updateData():
+    """
+    Update data based on the command-line argument.
+
+    This function checks the first command-line argument and updates data
+    for either 'Anime' or 'Manga'. It prints the chosen class and executes
+    the update process.
+
+    Args:
+        None
+
+    Raises:
+        Exception: If any error occurs during the update process.
+
+    Example:
+        $ python genderbyID.py Anime
+        Anime
+
+        $ python genderbyID.py Manga
+        Manga
+    """
+    try:
+        # Check the first command-line argument; set classData to 'Anime' or 'Manga'
+        classData = 'Anime' if sys.argv[1] == 'Anime' else 'Manga'
+        # If classData is 'Anime', update JSON IDs using getIDAnime() function
+        if classData == 'Anime':
+            updateJsonIds = gendersIDs(getIDAnime(), classData)
+            updateJsonIds.runList()
+        else:
+            # If classData is 'Manga', also update JSON IDs using getIDAnime() function
+            updateJsonIds = gendersIDs(getIDAnime(), classData)
+            updateJsonIds.runList()
+    except Exception as e:
+        # Print any error that occurs during the execution
+        print(f"An Error occurred: {e}")
+
+# Call the updateData function to execute the update process
+updateData()
+
