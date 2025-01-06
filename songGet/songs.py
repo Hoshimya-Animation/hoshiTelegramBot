@@ -31,7 +31,8 @@ class songsAnime:
         self.songsDirectory = "animeSongs"
         self.songsBool = False
         self.urlPattern = r'\?v=([^&]+)'
-        self.singerPattern = r'"(.+?)" by (.+?) \(eps.*\)'
+        self.generalRegex =  r"^(.*)\sby\s([^()]+(?:\([^()]+\))?)"
+        self.secondRegex =  r'"(.+?)" by (.+?) \(eps.*\)'
         self.themesBool = False
         self.songName = str
         self.singerName = str
@@ -156,11 +157,14 @@ class songsAnime:
         yt = YouTube(url, on_progress_callback=on_progress)  # Create a YouTube object with a progress callback
         ys = yt.streams.get_audio_only()  # Get the audio-only stream
         ys.download()  # Download the audio
-        tagName = MP4(f"{yt.title}.m4a")  # Create an MP4 object with the downloaded file
-        tagName.delete()  # Delete existing metadata
-        tagName['title'] = u"{}".format(self.songName)  # Set the title metadata
-        tagName['artist'] = u"{}".format(self.singerName)  # Set the artist metadata
-        tagName.save()  # Save the updated metadata
+        for root,dirs, files in os.walk(os.getcwd()):
+            for file in files:
+                if file.endswith('.m4a'):
+                    tagName = MP4(f"{os.path.join(root,file)}")  # Create an MP4 object with the downloaded file
+                    tagName.delete()  # Delete existing metadata
+                    tagName['title'] = u"{}".format(self.songName)  # Set the title metadata
+                    tagName['artist'] = u"{}".format(self.singerName)  # Set the artist metadata
+                    tagName.save()  # Save the updated metadata
         self.moveFiles()  # Move the downloaded files to the specified directory
     
     def __createTarget(self):
@@ -186,8 +190,16 @@ class songsAnime:
         Returns:
             tuple: The extracted song name and singer name.
         """
-        songN, singer = re.findall(self.singerPattern, song)[0]
-        return songN, singer
+        #General case pattern
+        match_g = re.search(self.generalRegex,song)
+        match_s = re.findall(self.secondRegex,song)
+        if match_s:
+            songN, artistN = re.findall(self.secondRegex,song)[0]
+            return songN,artistN
+        elif match_g:
+            songN = match_g.group(1).strip()
+            artistN = match_g.group(2).strip()
+            return songN,artistN
     
     def __cutDataYouTube(self, data):
         """
@@ -220,23 +232,25 @@ class songsAnime:
         """
         Download and process songs from the anime.
         """
-        try:
-            self.openingsLenList = len(self.themes['data']['openings'])  # Get the number of openings
-            for i in range(0, self.openingsLenList):
-                song = self.themes['data']['openings'][i]  # Get the opening song
-                songs, singer = self.__cutSingerString(song)  # Extract the song name and singer
-                self.__updateArtist(singer)  # Update the artist name
-                self.__updateNameSong(songs)  # Update the song name
-                self.__createTarget()  # Create the target directory
-                self.dowloadYouTube(self.__searchYB())  # Download the song from YouTube
-            self.openingsLenList = len(self.themes['data']['endings'])  # Get the number of endings
-            for i in range(0, self.openingsLenList):
-                song = self.themes['data']['endings'][i]  # Get the ending song
-                self.songName, self.singerName = self.__cutSingerString(song)  # Extract the song name and singer
-                self.__createTarget()  # Create the target directory
-                self.dowloadYouTube(self.__searchYB())  # Download the song from YouTube
-        except:
-            pass
+        #try:
+        self.openingsLenList = len(self.themes['data']['openings'])  # Get the number of openings
+        for i in range(0, self.openingsLenList):
+            song = self.themes['data']['openings'][i]  # Get the opening song
+            songs, artist = self.__cutSingerString(song)  # Extract the song name and singer
+            self.__updateNameSong(songs)  # Update the song name
+            self.__updateArtist(artist)  # Update the artist name
+            self.__createTarget()  # Create the target directory
+            self.dowloadYouTube(self.__searchYB())  # Download the song from YouTube
+        self.openingsLenList = len(self.themes['data']['endings'])  # Get the number of endings
+        for i in range(0, self.openingsLenList):
+            song = self.themes['data']['endings'][i]  # Get the ending song
+            songs, artist = self.__cutSingerString(song)  # Extract the song name and singer
+            self.__updateNameSong(songs)  # Update the song name
+            self.__updateArtist(artist)  # Update the artist name
+            self.__createTarget()  # Create the target directory
+            self.dowloadYouTube(self.__searchYB())  # Download the song from YouTube
+        #except:
+            #pass
     
     def destroyDirectory(self, dir_path):
         """
@@ -253,3 +267,4 @@ class songsAnime:
                 print("Path Wrong!")
         except Exception as e:
             print(f"An error occurred: {e}")
+
