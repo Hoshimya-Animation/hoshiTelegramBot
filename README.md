@@ -35,20 +35,43 @@ Welcome to the **hoshiiTelegramBot**! This adorable Telegram bot fetches anime a
 2. Inside of your virtual enviroment, clone the repository:
     ```bash
     git clone https://github.com/Hoshimya-Animation/hoshiTelegramBot
-    cd hoshiTelegramBot
+    ```
+    ```bash
+    cd hoshiTelegramBot/
     ```
 
 3. Install the required dependencies:
     ```bash
-    pip3 install -r requirements.txt
+    pip3 install -r requirements.txt --no-deps
     ```
+> [!NOTE]
+> If you run ```main.py``` the interpreter shows you this message ```AttributeError: module 'httpcore' has no attribute 'SyncHTTPTransport```
+
+> [!IMPORTANT]
+> Googletrans has an important issue nowadays. HTTPX package version  for Googletrans is 0.13.0, on other hand, Python-Telegram-Bot requires the version 0.27.0. Therefore there is a problem. However, you can fix temporaly this issue. 
+    
+- In a new terminal use this command
+
+    ```bash
+    pip list -v
+    ```
+
+> [!NOTE]
+> This command shows you all packages installed with pip.
+
+- Then, search for the package *googletrans*🔤, go to the path where it's installed, and **ONLY MODIFY** ⚠️ the file ***client.py***. In this file, on line 62, you can comment it out and below it, type this:
+
+    ```python
+    proxies: typing.Dict[str, httpcore.AsyncHTTPProxy] = None,
+    ```
+- Finally, save the document. 📄
 
 4. Open the file **main.py** and replace your Telegram Token of your Bot on ```TELEGRM_TOKEN```, i.e. ```"123+2"``` .
 
 
 5. Run the bot: 🤖
     ```bash
-    python main.py
+    python3 main.py
     ```
 
 ## 🌐 Usage
@@ -57,14 +80,14 @@ Add the bot to your Telegram and start chatting with it! Use the following comma
 
 - `/start` - The bot starts ₍^ >ヮ<^₎ .ᐟ. kawaii journey!
 - `/language`- Change language of the Bot 🇪🇸 ➡️ 🇬🇧 (Available in Spanish, English, French, Italian, Traditional Chinese, Japanese, Hindi, German, Arabic, Romanian, and Korean)
-- `/request [name]` - Request a new anime from our database (still in progress) or if it's available on MyAnimeList list 🗄 (Japanese or English).
+- `/request [name]` - Request information about an anime from MyAnimeList 🗄🔎📺 (japanese or english).
+- `/mangarequest [name]` - Request information about a manga from MyAnimeList 🗄🔎📖 (japanese or english).
 - `/random` - Random information about an anime 🎲
-- `/hoshii [gender]` - Anime suggestion by the gender 🌍🍱 (Action, Comedy, Horror, Sports, Adventure, Drama, Mystery, Supernatural, Avant Garde, Fantasy, Romance,Suspense, Award Winning, Girls Love, Sci-Fi, Boys Love,Gourmet, Slice of Life, Ecchi, Erotica, Hentai).
+- `/mangarand` - Random information about a manga 🎲📖
+- `/hoshiimanga [gender]` - Manga suggestion by gender 🍱📖.
+- `/showgen` - Show all available genders 🍘🎎.
+- `/hoshii [gender]` - Anime suggestion by the gender 🌍🍱 .
 - `/help` - Give you information about my functions 🆘❔.
-
-## NEW UPDATES (Comming Soon)
-* Do you want to listen your favourite anime openings and endings? We're workin' on it
-* Get any recomendation about any manga? (In progress)
 
 
 
