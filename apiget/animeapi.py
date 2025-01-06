@@ -251,7 +251,7 @@ class AnimeApp:
         Returns:
             int: The ID of the anime corresponding to the provided gender.
         """
-        js_file = os.path.join(os.getcwd(),'idgenders/idsgen.json') # Change directory and find the file
+        js_file = os.path.join(os.getcwd(),'idgenders/idsgenAnime.json') # Change directory and find the file
         file = open(js_file)  # Open the JSON file containing gender IDs
         idsGen = json.load(file)  # Load the JSON data into a dictionary
         self.idDBGender = random.choice(idsGen[str(gender)])  # Select a random ID from the list corresponding to the provided gender
@@ -335,3 +335,5 @@ class AnimeApp:
             while self.__fillAnimeData(True) == []:  # Keep trying to fill data with random selection until successful
                 continue  # Continue the loop until data is filled
             return self.animeData  # Return the filled anime data
+    def getAnimeID(self):
+        return self.__animeId
