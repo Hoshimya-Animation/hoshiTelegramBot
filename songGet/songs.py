@@ -60,10 +60,9 @@ class songsAnime:
             KeyError: If the metadata keys 'titl' or 'arti' are not found in the file.
             mutagen.MutagenError: If there is an error in processing the file with mutagen.
         """
-    
-        metaDataSong = mutagen.File(f'{pathAudio}')
-        self.goodTitle =''.join(metaDataSong[f'titl'])
-        self.goodArtist = ''.join(metaDataSong[f'arti'])
+        metaDataSong = mutagen.File(f'{pathAudio}').values()
+        self.goodTitle =''.join(metaDataSong[0])
+        self.goodArtist = ''.join(metaDataSong[1])
         return self.goodTitle,self.goodArtist
     
     def hasOpenings(self):
@@ -156,15 +155,18 @@ class songsAnime:
         """
         yt = YouTube(url, on_progress_callback=on_progress)  # Create a YouTube object with a progress callback
         ys = yt.streams.get_audio_only()  # Get the audio-only stream
-        ys.download()  # Download the audio
-        for root,dirs, files in os.walk(os.getcwd()):
-            for file in files:
-                if file.endswith('.m4a'):
-                    tagName = MP4(f"{os.path.join(root,file)}")  # Create an MP4 object with the downloaded file
-                    tagName.delete()  # Delete existing metadata
-                    tagName['title'] = u"{}".format(f'{yt.title}')  # Set the title metadata
-                    tagName['artist'] = u"{}".format(f'{yt.author}')  # Set the artist metadata
-                    tagName.save()  # Save the updated metadata
+        downloaded_file = ys.download()  # Download the audio
+        # Ensure the file extension is correct
+        file_path = downloaded_file if downloaded_file.endswith('.m4a') else f"{downloaded_file}.m4a"
+        # Create an MP4 object with the downloaded file
+        tagName = MP4(file_path)
+        # Delete existing metadata
+        tagName.delete()
+        # Set the title and artist metadata
+        tagName['\xa9nam'] = self.songName
+        tagName['\xa9ART'] = self.singerName
+        # Save the updated metadata
+        tagName.save()          
         self.moveFiles()  # Move the downloaded files to the specified directory
     
     def __createTarget(self):
@@ -222,7 +224,7 @@ class songsAnime:
         Returns:
             str: The YouTube video URL.
         """
-        get_url = YoutubeSearch(f'{self.singerName} {self.songName}', max_results=1).to_dict()
+        get_url = YoutubeSearch(f'{self.singerName} {''.join(self.songName)}', max_results=1).to_dict()
         get_url = get_url[0]['url_suffix']
         uri = self.__cutDataYouTube(get_url)
         url = 'http://youtube.com/watch?v=' + uri
@@ -245,8 +247,9 @@ class songsAnime:
         for i in range(0, self.openingsLenList):
             song = self.themes['data']['endings'][i]  # Get the ending song
             songs, artist = self.__cutSingerString(song)  # Extract the song name and singer
-            self.__updateNameSong(songs)  # Update the song name
-            self.__updateArtist(artist)  # Update the artist name
+            self.songName, self.singerName = self.__cutSingerString(song)
+            #self.__updateNameSong(songs)  # Update the song name
+            #self.__updateArtist(artist)  # Update the artist name
             self.__createTarget()  # Create the target directory
             self.dowloadYouTube(self.__searchYB())  # Download the song from YouTube
         #except:
@@ -267,4 +270,3 @@ class songsAnime:
                 print("Path Wrong!")
         except Exception as e:
             print(f"An error occurred: {e}")
-
