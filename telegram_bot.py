@@ -1,6 +1,7 @@
 import logging  # Import the logging module for handling logs
 import time
 import os
+import mutagen
 from difflib import SequenceMatcher  # Import SequenceMatcher for string similarity comparison
 from googletrans import Translator  # Import Translator from googletrans for text translation
 from apiget.animeapi import AnimeApp  # Import AnimeApp from apiget.animeapi for anime-related data
