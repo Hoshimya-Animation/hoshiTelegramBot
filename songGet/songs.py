@@ -224,7 +224,7 @@ class songsAnime:
         Returns:
             str: The YouTube video URL.
         """
-        get_url = YoutubeSearch(f'{self.singerName} {''.join(self.songName)}', max_results=1).to_dict()
+        get_url = YoutubeSearch(f'{self.singerName} {self.songName}', max_results=1).to_dict()
         get_url = get_url[0]['url_suffix']
         uri = self.__cutDataYouTube(get_url)
         url = 'http://youtube.com/watch?v=' + uri
