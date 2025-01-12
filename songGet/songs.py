@@ -4,12 +4,14 @@ import sys  # Import the sys module to interact with the interpreter
 import shutil  # Import the shutil module for file operations
 import os.path  # Import os.path module for file path operations
 import mutagen  # Import the mutagen module for handling audio metadata
+import ssl # Import the ssl certificates to MacOS
 from mutagen.mp4 import MP4  # Import the MP4 class from mutagen.mp4 for handling MP4 files
 from jikanpy import Jikan  # Import the Jikan class from jikanpy for interacting with the Jikan API
 from pytubefix import YouTube  # Import the YouTube class from pytubefix for downloading videos
 from pytubefix.cli import on_progress  # Import the on_progress function for progress callbacks
 from youtube_search import YoutubeSearch  # Import the YoutubeSearch class for searching YouTube
-
+# Get the certificates if not installed on MacOS
+ssl._create_default_https_context = ssl._create_unverified_context
 # Get the current directory of the script
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Get the parent directory of the current directory
