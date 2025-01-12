@@ -264,37 +264,37 @@ class MangaApp:
             list: A list containing details of the suggested manga.
         """
         self.__getMangaByIDGender(gender=gender)  # Retrieve an manga ID based on the provided gender
-        #try:
-        setAnimeID = self.request_api.manga(self.idDBGender)  # Fetch anime details using the retrieved manga ID
-        self.__mangaId = setAnimeID['data']['mal_id']  # Extract the anime ID from the fetched data
-        dataManga = self.request_api.manga(self.__mangaId)  # Fetch detailed manga data using the manga ID
-        self.mangaTitle = self.__dataTranslated(dataManga['data']['title_japanese'], 'ja')  # Translate the manga title to Japanese
-        self.mangaTitle = "{} ({})".format(self.__dataTranslated(dataManga['data']['title_japanese'], srcLanguage='ja',defaultLang=True),self.mangaTitle)
-        self.__mangaTitle_Japanese = dataManga['data']['title_japanese']  # Store the original Japanese title
-        listAuthors = [auth['name'] for auth in dataManga['data']['authors']]
-        listAuthors = [name.replace(",","") for name in listAuthors]
-        listSerialization = [ser['name'] for ser in dataManga['data']['serializations']]
-        listGenders = [gen['name'] for gen in dataManga['data']['genres']]  # Extract the genres of the manga
-        self.translated_gender = [self.__dataTranslated(g, 'en') for g in listGenders]  # Translate the genres to English
-        listThemes = [thems['name'] for thems in dataManga['data']['themes']] # Extract the themes of the manga
-        self.translatedTheme = [self.__dataTranslated(g, 'en') for g in listThemes]
-        self.__authors = ", ".join(map(str,listAuthors))
-        self.__serialization = ", ".join(map(str,listSerialization))
-        self.__themes = "#" + " #".join(map(str,self.translatedTheme))
-        self.__genderManga = "#" + " #".join(map(str, self.translated_gender))  # Format the genres as a string
-        self.__chapters = str(dataManga['data']['chapters'])
-        self.__volumes = str(dataManga['data']['volumes'])  # Store the number of episodes
-        self.__score = str(dataManga['data']['score'])  # Store the score of the manga
-        self.__status = self.__dataTranslated(dataManga['data']['status'], 'en')  # Translate the status of the manga
-        self.__synopsis = self.__dataTranslated(dataManga['data']['synopsis'], 'en')  # Translate the synopsis
-        self.__urlPicture = str(dataManga['data']['images']['jpg']['large_image_url'])  # Store the URL of the manga picture
-        self.mangaSuggest.extend([
-            self.mangaTitle, self.__mangaTitle_Japanese, self.__authors,self.__themes,
-            self.__serialization,self.__volumes, self.__chapters, self.__genderManga,
-            self.__status, self.__score, self.__synopsis,self.__urlPicture
-        ])  # Add all the collected data to the MangaData list
-        #except:
-        #    pass  # Handle any exceptions that occur during the process
+        try:
+            setAnimeID = self.request_api.manga(self.idDBGender)  # Fetch anime details using the retrieved manga ID
+            self.__mangaId = setAnimeID['data']['mal_id']  # Extract the anime ID from the fetched data
+            dataManga = self.request_api.manga(self.__mangaId)  # Fetch detailed manga data using the manga ID
+            self.mangaTitle = self.__dataTranslated(dataManga['data']['title_japanese'], 'ja')  # Translate the manga title to Japanese
+            self.mangaTitle = "{} ({})".format(self.__dataTranslated(dataManga['data']['title_japanese'], srcLanguage='ja',defaultLang=True),self.mangaTitle)
+            self.__mangaTitle_Japanese = dataManga['data']['title_japanese']  # Store the original Japanese title
+            listAuthors = [auth['name'] for auth in dataManga['data']['authors']]
+            listAuthors = [name.replace(",","") for name in listAuthors]
+            listSerialization = [ser['name'] for ser in dataManga['data']['serializations']]
+            listGenders = [gen['name'] for gen in dataManga['data']['genres']]  # Extract the genres of the manga
+            self.translated_gender = [self.__dataTranslated(g, 'en') for g in listGenders]  # Translate the genres to English
+            listThemes = [thems['name'] for thems in dataManga['data']['themes']] # Extract the themes of the manga
+            self.translatedTheme = [self.__dataTranslated(g, 'en') for g in listThemes]
+            self.__authors = ", ".join(map(str,listAuthors))
+            self.__serialization = ", ".join(map(str,listSerialization))
+            self.__themes = "#" + " #".join(map(str,self.translatedTheme))
+            self.__genderManga = "#" + " #".join(map(str, self.translated_gender))  # Format the genres as a string
+            self.__chapters = str(dataManga['data']['chapters'])
+            self.__volumes = str(dataManga['data']['volumes'])  # Store the number of episodes
+            self.__score = str(dataManga['data']['score'])  # Store the score of the manga
+            self.__status = self.__dataTranslated(dataManga['data']['status'], 'en')  # Translate the status of the manga
+            self.__synopsis = self.__dataTranslated(dataManga['data']['synopsis'], 'en')  # Translate the synopsis
+            self.__urlPicture = str(dataManga['data']['images']['jpg']['large_image_url'])  # Store the URL of the manga picture
+            self.mangaSuggest.extend([
+                self.mangaTitle, self.__mangaTitle_Japanese, self.__authors,self.__themes,
+                self.__serialization,self.__volumes, self.__chapters, self.__genderManga,
+                self.__status, self.__score, self.__synopsis,self.__urlPicture
+            ])  # Add all the collected data to the MangaData list
+        except:
+            pass  # Handle any exceptions that occur during the process
         return self.mangaSuggest  # Return the list of suggested manga details
     def getSuggestbyGenre(self, genderChoose) -> list:
         """
