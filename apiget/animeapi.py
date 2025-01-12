@@ -169,7 +169,6 @@ class AnimeApp:
         self.__ratingData = str(matched).capitalize()  # Capitalize the matched rating keyword
         # Check if the rating is 'Rx - Hentai' and translate a warning message if true.
         if self.__ratingData == 'Rx - Hentai' or self.__ratingData == 'Rx - hentai':
-            self.__ratingData = self.__dataTranslated('The genre Hentai is not strongly recommended for audiences under 18 years.', 'en')
             return self.__ratingData  # Return the translated warning message
         else:
             return self.__ratingData  # Return the processed rating data
