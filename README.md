@@ -14,10 +14,14 @@ Welcome to the **hoshiiTelegramBot**! This adorable Telegram bot fetches anime a
 
 ## 🌟 Features
 
-- Fetches detailed information about anime and manga from Jikan API and Google.
+- Fetches detailed information about anime and manga from Jikan API and YouTube.
 - Supports multiple languages for a global audience.
-- Provides personalized recommendations based on your preferences.
 - Cute and user-friendly interface for the best experience.
+- Download your favourite opening and ending from Anime (Not apply for Hentai or Erotica Animes).
+- Anime/Manga reconmendations.
+- Protect to child's. We block continent +18 if you are under-age. This will change until the age is 18 from your register.
+- WE DON'T STORE YOUR PERSONAL INFO (Only we get your ID of Telegram and the age with the date). All songs are store into a temporal directory until upload to Telegram.
+
 
 ## 🛠️ Installation
 
