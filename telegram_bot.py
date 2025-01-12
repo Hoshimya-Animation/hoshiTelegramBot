@@ -2,6 +2,15 @@ import logging  # Import the logging module for handling logs
 import time
 import os
 import mutagen
+from botDatabase import (
+    start_db,
+    updateIDUser,
+    updateAge,
+    update_age_automatically,
+    get_user_age,
+    set_language,
+    get_language
+)
 from difflib import SequenceMatcher  # Import SequenceMatcher for string similarity comparison
 from googletrans import Translator  # Import Translator from googletrans for text translation
 from apiget.animeapi import AnimeApp  # Import AnimeApp from apiget.animeapi for anime-related data
@@ -174,6 +183,8 @@ telebot = telegramBot() # Create an instance of the TelegramBot class
 animeApp = AnimeApp() # Create an instance of the AnimeApp class
 songAnime = songsAnime()
 mangaApp = MangaApp()
+start_db()
+update_age_automatically()
 #Functons for Anime commands
 """Start Command"""
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -184,12 +195,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context (ContextTypes.DEFAULT_TYPE): Telegram context object
     """
     user = update.message.chat
-    if telebot.language != str:
+    user_id = update.message.from_user['id']
+    lang = get_language(user_id=user_id)
+    age = get_user_age(user_id=user_id)
+    updateIDUser(user_id,language=lang,age=age)
+    if lang != None:
+        telebot.getAbbreviation(str(lang))
         # Send a translated welcome message if the language is not English
-        await context.bot.send_message(chat_id=update.effective_chat.id, text= telebot.translatedData(f"Hi, {user.first_name}!!♡⸜(˃ ᵕ ˂ )⸝ I’m Hoshimya ✨, but you can call me ‘mya-chan’ if you prefer (ᵕ—ᴗ—). I’m at your service! 🌟\nWhat does this bot do? ❓ Well, when boredom strikes, I’ll whisk you away to the world of anime with a recommendation. Share your preferred genre, and I’ll conjure up a suggestion! I understand around 10 languages. 🌐\nWhile there are some things I can’t do, I’ll give my best shot.\nIf you’re a programmer itching to improve something new, go ahead! 👨‍💻👩‍💻 Check out the repository on GitHub. 🐈‍⬛ https://github.com/Hoshimya-Animation/hoshiTelegramBot \nAnd lastly, like the stars and constellations, I’ll be here for you until eternity. ( > 〰 < )♡✨🌃🌍"))
+        await update.message.reply_text(telebot.translatedData(f"Hi, {user.first_name}!!♡⸜(˃ ᵕ ˂ )⸝ I’m Hoshimya ✨, but you can call me ‘mya-chan’ if you prefer (ᵕ—ᴗ—). I’m at your service! 🌟\nWhat does this bot do? ❓ Well, when boredom strikes, I’ll whisk you away to the world of anime with a recommendation. Share your preferred genre, and I’ll conjure up a suggestion! I understand around 10 languages. 🌐\nWhile there are some things I can’t do, I’ll give my best shot.\nIf you’re a programmer itching to improve something new, go ahead! 👨‍💻👩‍💻 Check out the repository on GitHub. 🐈‍⬛ https://github.com/Hoshimya-Animation/hoshiTelegramBot \nAnd lastly, like the stars and constellations, I’ll be here for you until eternity. ( > 〰 < )♡✨🌃🌍"))
+        if age==None:
+            await update.message.reply_text(telebot.translatedData(f"How old are you?"))
+            context.user_data['awaiting_age'] = True
+        else:pass
     else:
         # Send the default welcome message in English
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Hi, {user.first_name}!!♡⸜(˃ ᵕ ˂ )⸝ I’m Hoshimya ✨, but you can call me ‘mya-chan’ if you prefer (ᵕ—ᴗ—). I’m at your service! 🌟\nWhat does this bot do? ❓ Well, when boredom strikes, I’ll whisk you away to the world of anime with a recommendation. Share your preferred genre, and I’ll conjure up a suggestion! I understand around 10 languages. 🌐\nWhile there are some things I can’t do, I’ll give my best shot.\nIf you’re a programmer itching to improve something new, go ahead! 👨‍💻👩‍💻 Check out the repository on GitHub. 🐈‍⬛ https://github.com/Hoshimya-Animation/hoshiTelegramBot \nAnd lastly, like the stars and constellations, I’ll be here for you until eternity. ( > 〰 < )♡✨🌃🌍")
+        await update.message.reply_text(f"Hi, {user.first_name}!!♡⸜(˃ ᵕ ˂ )⸝ I’m Hoshimya ✨, but you can call me ‘mya-chan’ if you prefer (ᵕ—ᴗ—). I’m at your service! 🌟\nWhat does this bot do? ❓ Well, when boredom strikes, I’ll whisk you away to the world of anime with a recommendation. Share your preferred genre, and I’ll conjure up a suggestion! I understand around 10 languages. 🌐\nWhile there are some things I can’t do, I’ll give my best shot.\nIf you’re a programmer itching to improve something new, go ahead! 👨‍💻👩‍💻 Check out the repository on GitHub. 🐈‍⬛ https://github.com/Hoshimya-Animation/hoshiTelegramBot \nAnd lastly, like the stars and constellations, I’ll be here for you until eternity. ( > 〰 < )♡✨🌃🌍")
+        if age==None:
+            await update.message.reply_text(f"How old are you?")
+            context.user_data['awaiting_age'] = True
+        else:pass
 """Change commands"""
 async def changeCommands(application:Application) -> None:
     """
@@ -233,11 +257,13 @@ async def language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    if telebot.language == str:
+    user_id = update.message.from_user['id']
+    lang = get_language(user_id=user_id)
+    if lang == None:
         await update.message.reply_text("Please choose:", reply_markup=reply_markup)
     else:
+        telebot.getAbbreviation(str(lang))
         await update.message.reply_text(telebot.translatedData("Please choose:"), reply_markup=reply_markup)
-"""Button query"""
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Parses the CallbackQuery and updates the message text.
@@ -247,15 +273,31 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         context (ContextTypes.DEFAULT_TYPE): The context object.
     """
     query = update.callback_query
+    user_id = query.from_user.id
     await query.answer()
-    if query.data.split('_')[1] in telebot.dict_languages and query.data.startswith('lang_'):
-        # Get the language from the query data
-        language = telebot.dict_languages[query.data.split('_')[1]]
-        telebot.getAbbreviation(lang=language)
-        # Get the abbreviation for the language
-        animeApp.changeLanguage(language)
-        # Change the language in the animeApp
-        await query.edit_message_text(text=f"{telebot.translatedData('Selected option')}: {query.data.split('_')[1]}")
+    lang = get_language(user_id=user_id)
+    if lang==None:
+        if query.data.split('_')[1] in telebot.dict_languages and query.data.startswith('lang_'):
+            # Get the language from the query data
+            language = telebot.dict_languages[query.data.split('_')[1]]
+            set_language(user_id=user_id,language=language)
+            language = get_language(user_id=user_id)
+            telebot.getAbbreviation(lang=language)
+            # Get the abbreviation for the language
+            animeApp.changeLanguage(language=language)
+            # Change the language in the animeApp
+            await query.edit_message_text(text=f"{telebot.translatedData('Selected option')}: {query.data.split('_')[1]}")
+    elif lang!=None:
+        if query.data.split('_')[1] in telebot.dict_languages and query.data.startswith('lang_'):
+            # Get the language from the query data
+            language = telebot.dict_languages[query.data.split('_')[1]]
+            set_language(user_id=user_id,language=language)
+            language = get_language(user_id=user_id)
+            telebot.getAbbreviation(lang=language)
+            # Get the abbreviation for the language
+            animeApp.changeLanguage(language=language)
+            # Change the language in the animeApp
+            await query.edit_message_text(text=f"{telebot.translatedData('Selected option')}: {query.data.split('_')[1]}")
 async def handle_songs_download(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Handle the download and sending of anime songs.
@@ -274,14 +316,16 @@ async def handle_songs_download(update: Update, context: ContextTypes.DEFAULT_TY
     Raises:
         Exception: If an error occurs during the processing or sending of audio files.
     """
+    query = update.callback_query
+    user_id = query.from_user.id
+    lang = get_language(user_id=user_id)
     try:
+        telebot.getAbbreviation(str(lang))
         # Fetch and download songs using the songAnime object
         songAnime.getSongs()
-        
         # Get the current working directory and the new directory path for songs
         current_path = os.getcwd()
         new_dir_path = os.path.join(current_path, songAnime.songsDirectory)
-        
         # Walk through the new directory to find audio files
         for root, dirs, files in os.walk(new_dir_path):
             for file in files:
@@ -289,10 +333,8 @@ async def handle_songs_download(update: Update, context: ContextTypes.DEFAULT_TY
                 try:
                     # Split the file name and extension
                     file_root, file_ext = os.path.splitext(file)
-                    
                     # Update the audio metadata (title and artist)
                     titleName, artistName = songAnime.updateString(audio_path)
-                    
                     # Open the audio file and send it via Telegram bot
                     with open(audio_path, 'rb') as audio_file:
                         await update.callback_query.message.reply_audio(
@@ -303,17 +345,17 @@ async def handle_songs_download(update: Update, context: ContextTypes.DEFAULT_TY
                         )
                 except Exception as e:
                     # Send a failure message if an exception occurs
-                    await update.callback_query.message.reply_text(telebot.translatedData("Failed! (╥﹏╥)"))
-        
+                    failure_message = telebot.translatedData("Failed! (╥﹏╥)") if lang is not None   else"Failed! (╥﹏╥)"
+                    await update.callback_query.message.reply_text(failure_message)
         # Pause for 3 seconds before cleaning up the directory
         time.sleep(3)
-        
         # Destroy the directory containing the downloaded songs
         songAnime.destroyDirectory(os.path.join(os.getcwd(), "animeSongs"))
-    
     except Exception as e:
         # Send a failure message if an exception occurs in the main try block
-        await update.callback_query.message.reply_text(telebot.translatedData("Failed! (╥﹏╥)"))
+        failure_message = telebot.translatedData("Failed! (╥﹏╥)") if lang is not None else "Failed! (╥﹏╥)"
+        await update.callback_query.message.reply_text(failure_message)
+
 
 async def buttonDownload(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -335,13 +377,21 @@ async def buttonDownload(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         None
     """
     query = update.callback_query
+    user_id = query.from_user.id 
+    lang = get_language(user_id=user_id)
     await query.answer()
-
     if query.data == 'yes_option':
-        text = "Downloading and uploading" if telebot.language == str else telebot.translatedData("Downloading and uploading")
-        await query.edit_message_text(text=text)
-        await handle_songs_download(update, context)
-        context.user_data.clear()
+        if lang == None:
+            text = "Downloading and uploading"
+            await query.edit_message_text(text=text)
+            await handle_songs_download(update,context)
+            context.user_data.clear()
+        else:
+            telebot.getAbbreviation(str(lang))
+            text = telebot.translatedData("Downloading and uploading")
+            await query.edit_message_text(text=text)
+            await handle_songs_download(update, context)
+            context.user_data.clear()
     elif query.data == 'no_option':
         text = "Cancelled"
         await query.edit_message_text(text=text)
@@ -364,93 +414,102 @@ async def requestRandom(update: Update, context: CallbackContext) -> None:
     update (Update): The update object that contains all the information about the incoming update.
     context (CallbackContext): The context object that contains the bot's data and helper functions.
     """
+    user_id = update.message.from_user['id']
+    lang = get_language(user_id=user_id)
+    age = get_user_age(user_id=user_id)
+    
     # Check if the language setting in the telebot is set to a string (indicating English)
-    if telebot.language == str:
-        # Change the language of the anime application to English
-        animeApp.changeLanguage('en')
-        # Request a random anime from the anime application
-        animeApp.getOption('randanime')
-        # Get the anime data from the anime application
-        animedata = animeApp.getAnimeData()
-        # Create a help_info string with the anime data formatted as "key: value"
-        help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_message.keys(),animedata))
-        # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-        if len(help_info)>=1000:help_info = help_info[0:997]+"..."
-        # Check if the anime is categorized as hentai or erotica
-        if ('#Hentai' in animedata[3] or '#hentai' in animedata[3]) or ('#Erotica' in animedata[3] or '#erotica' in animedata[3]):
-            try:
+    if lang == None:
+        try:
+            # Change the language of the anime application to English
+            animeApp.changeLanguage('en')
+            # Request a random anime from the anime application
+            animeApp.getOption('randanime')
+            # Get the anime data from the anime application
+            animedata = animeApp.getAnimeData()
+            # Create a help_info string with the anime data formatted as "key: value"
+            help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_message.keys(),animedata))
+            # If the help_info string is longer than 1000 characters, truncate it and add ellipses
+            if len(help_info)>=1000:
+                help_info = help_info[0:997]+"..."
+             # Check if the anime is categorized as hentai or erotica 
+            is_adult_content = ('#Hentai' in animedata[3] or '#hentai' in animedata[3] or '#Erotica' in animedata[3] or '#erotica' in animedata[3])
+            # Check if the anime is categorized as hentai or erotica
+            if is_adult_content and (age is None or age <18):
+                await update.message.reply_text("Sorry, we cannot show you this content (◞‸◟；)")
+            elif is_adult_content and (age>=18):
                 # Notify the user that an anime suggestion is being sent
                 await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
-                # Send the anime image and information as a photo with a spoiler warning
                 await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
-        else:
-            try:
+            else:
+                if not is_adult_content:
+                    try:
+                        # Notify the user that an anime suggestion is being sent
+                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                        # Send the anime image and information as a photo without a spoiler warning
+                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
+                        songAnime.changeID(animeApp.getAnimeID())
+                        songAnime.call_request()
+                        songAnime.hasOpenings()
+                        if songAnime.songsBool:
+                            keyboard = [
+                                [InlineKeyboardButton(f"✅",callback_data='yes_option')],
+                                [InlineKeyboardButton(f"❌",callback_data='no_option')]
+                            ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await update.message.reply_text(f"You have openings and endings inthis    anime. Do you wanna to dowloaded?",reply_markup=reply_markup)
+                        else:pass
+                    except:
+                        # If an error occurs, notify the user
+                        await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+        except:
+            await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+    elif lang!= None:
+        try:
+            telebot.getAbbreviation(str(lang))
+            # If the language setting in the telebot is not a string, use the set language
+            animeApp.changeLanguage(lang)
+            # Request a random anime from the anime application
+            animeApp.getOption('randanime')
+            # Get the anime data from the anime application
+            animedata = animeApp.getAnimeData()
+            # Create a help_info string with the anime data formatted as "translated key: value"
+            help_info = '\n'.join(f'{telebot.translatedData(k)}: {v}'for k,v in zip(telebot.info_message.keys(),animedata))
+            # If the help_info string is longer than 1000 characters, truncate it and add ellipses
+            if len(help_info)>=1000:
+                help_info = help_info[0:997]+"..."
+            # Check if the anime is categorized as hentai or erotica
+            is_adult_content = ('#Hentai' in animedata[3] or '#hentai' in animedata[3] or '#Erotica' in animedata[3] or '#erotica' in animedata[3])
+            # Check if the anime is categorized as hentai or erotica
+            if is_adult_content and (age is None or age <18):
+                await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
+            elif is_adult_content and (age>=18):
                 # Notify the user that an anime suggestion is being sent
-                await update.message.reply_text("Ok! ⸜(｡˃ ᵕ ˂ )⸝♡.")
-                # Send the anime image and information as a photo without a spoiler warning
-                await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
-                animeID = animeApp.getAnimeID()
-                songAnime.changeID(animeApp.getAnimeID())
-                songAnime.call_request()
-                songAnime.hasOpenings()
-                if songAnime.songsBool:
-                    keyboard = [
-                        [InlineKeyboardButton(f"✅",callback_data='yes_option')],
-                        [InlineKeyboardButton(f"❌",callback_data='no_option')]
-                    ]
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-                    await update.message.reply_text(f"You have openings and endings in this anime. Do you wanna to dowloaded?",reply_markup=reply_markup)
-                else:
-                    pass
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-    elif telebot.language != str:
-        # If the language setting in the telebot is not a string, use the set language
-        animeApp.changeLanguage(telebot.language)
-        # Request a random anime from the anime application
-        animeApp.getOption('randanime')
-        # Get the anime data from the anime application
-        animedata = animeApp.getAnimeData()
-        # Create a help_info string with the anime data formatted as "translated key: value"
-        help_info = '\n'.join(f'{telebot.translatedData(k)}: {v}'for k,v in zip(telebot.info_message.keys(),animedata))
-        # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-        if len(help_info)>=1000:help_info = help_info[0:997]+"..."
-        # Check if the anime is categorized as hentai or erotica
-        if (telebot.translatedData('#Hentai') in animedata[3] or telebot.translatedData('#hentai') in animedata[3]) or (telebot.translatedData('#Erotica') in animedata[3] or telebot.translatedData('#erotica') in animedata[3]):
-            try:
-                # Notify the user that an anime suggestion is being sent
-                await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                # Send the anime image and information as a photo with a spoiler warning
+                await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
                 await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-        else:
-            try:
-                # Notify the user that an anime suggestion is being sent
-                await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                # Send the anime image and information as a photo without a spoiler warning
-                await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
-                animeID = animeApp.getAnimeID()
-                songAnime.changeID(animeApp.getAnimeID())
-                songAnime.call_request()
-                songAnime.hasOpenings()
-                if songAnime.songsBool:
-                    keyboard = [
-                        [InlineKeyboardButton(f"✅",callback_data='yes_option')],
-                        [InlineKeyboardButton(f"❌",callback_data='no_option')]
-                    ]
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-                    await update.message.reply_text(telebot.translatedData(f"You have openings and endings in this anime. Do you wanna to dowloaded?"),reply_markup=reply_markup)
-                else:
-                    pass
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+            else:
+                if not is_adult_content:
+                    try:
+                        # Notify the user that an anime suggestion is being sent
+                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                        # Send the anime image and information as a photo without a spoiler warning
+                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
+                        songAnime.changeID(animeApp.getAnimeID())
+                        songAnime.call_request()
+                        songAnime.hasOpenings()
+                        if songAnime.songsBool:
+                            keyboard = [
+                                [InlineKeyboardButton(f"✅",callback_data='yes_option')],
+                                [InlineKeyboardButton(f"❌",callback_data='no_option')]
+                            ]
+                            reply_markup = InlineKeyboardMarkup(keyboard)
+                            await update.message.reply_text(telebot.translatedData(f"You have openings and endings in this anime. Do you wanna to dowloaded?"),reply_markup=reply_markup)
+                        else:pass
+                    except:
+                        # If an error occurs, notify the user
+                        await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+        except:
+            await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
 
 """
 Request Anime by User Function
@@ -467,18 +526,21 @@ async def requestAnime(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     update (Update): The update object that contains all the information about the incoming update.
     context (ContextTypes.DEFAULT_TYPE): The context object that contains the bot's data and helper functions.
     """
+    user_id = update.message.from_user['id']
+    lang = get_language(user_id=user_id)
+    age = get_user_age(user_id=user_id)
     # Get the user's input text and split it into command and anime name
     user_input = update.message.text.split(maxsplit=1)
     # Check if the user provided an anime name
     if len(user_input) > 1:
         name = user_input[1]
         # Check if the language setting in the telebot is set to a string (indicating English)
-        if telebot.language == str:
-            # Change the language of the anime application to English
-            animeApp.changeLanguage('en')
-            # Change the anime source in the anime application to the user's input
-            animeApp.changeAnimeSource(str(name))
+        if lang == None:
             try:
+                # Change the language of the anime application to English
+                animeApp.changeLanguage('en')
+                # Change the anime source in the anime application to the user's input
+                animeApp.changeAnimeSource(str(name))
                 # Request the user-specified anime from the anime application
                 animeApp.getOption('useranime')
                 # Get the anime data from the anime application
@@ -486,146 +548,19 @@ async def requestAnime(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 # Create a help_info string with the anime data formatted as "key: value"
                 help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_message.keys(),animedata))
                 # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-                if len(help_info)>=1000:help_info = help_info[0:997]+"..."
+                if len(help_info)>=1000:
+                    help_info = help_info[0:997]+"..."
+                # Check if the anime is categorized as hentai or erotica 
+                is_adult_content = ('#Hentai' in animedata[3] or '#hentai' in animedata[3] or '#Erotica' in animedata[3] or '#erotica' in animedata[3])
                 # Check if the anime is categorized as hentai or erotica
-                if ('#Hentai' in animedata[3] or '#hentai' in animedata[3]) or ('#Erotica' in animedata[3] or '#erotica' in animedata[3]):
-                    try:
-                        # Notify the user that an anime suggestion is being sent
-                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
-                        # Send the anime image and information as a photo with a spoiler warning
-                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
-                    except:
-                        # If an error occurs, notify the user
-                        await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+                if is_adult_content and (age is None or age <18):
+                    await update.message.reply_text("Sorry, we cannot show you this content (◞‸◟；)")
+                elif is_adult_content and (age>=18):
+                    # Notify the user that an anime suggestion is being sent
+                    await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                    await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
                 else:
-                    try:
-                        # Notify the user that an anime suggestion is being sent
-                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
-                        # Send the anime image and information as a photo without a spoiler warning
-                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
-                        animeID = animeApp.getAnimeID()
-                        songAnime.changeID(animeApp.getAnimeID())
-                        songAnime.call_request()
-                        songAnime.hasOpenings()
-                        if songAnime.songsBool:
-                            keyboard = [
-                                [InlineKeyboardButton(f"✅",callback_data='yes_option')],
-                                [InlineKeyboardButton(f"❌",callback_data='no_option')]
-                            ]
-                            reply_markup = InlineKeyboardMarkup(keyboard)
-                            await update.message.reply_text(f"You have openings and endings in this anime. Do you wanna to dowloaded?",reply_markup=reply_markup)
-                        else:
-                            pass
-                    except:
-                        # If an error occurs, notify the user
-                        await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
-        elif telebot.language != str:
-            # If the language setting in the telebot is not a string, use the set language
-            animeApp.changeLanguage(telebot.language)
-            # Change the anime source in the anime application to the user's input
-            animeApp.getOption('useranime')
-            try:
-                # Request the user-specified anime from the anime application
-                animeApp.changeAnimeSource(name)
-                # Get the anime data from the anime application
-                animedata = animeApp.getAnimeData()
-                # Create a help_info string with the anime data formatted as "translated key: value"
-                help_info = '\n'.join(f'{telebot.translatedData(k)}: {v}'for k,v in zip(telebot.info_message.keys(),animedata))
-                # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-                if len(help_info)>=1000:help_info = help_info[0:997]+"..."
-                # Check if the anime is categorized as hentai or erotica
-                if (telebot.translatedData('#Hentai') in animedata[3] or telebot.translatedData('#hentai') in animedata[3]) or (telebot.translatedData('#Erotica') in animedata[3] or telebot.translatedData('#erotica') in animedata[3]):
-                    try:
-                        # Notify the user that an anime suggestion is being sent
-                        await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                        # Send the anime image and information as a photo with a spoiler warning
-                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
-                    except:
-                        # If an error occurs, notify the user
-                        await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-                else:
-                    try:
-                        # Notify the user that an anime suggestion is being sent
-                        await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                        # Send the anime image and information as a photo without a spoiler warning
-                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
-                        animeID = animeApp.getAnimeID()
-                        songAnime.changeID(animeApp.getAnimeID())
-                        songAnime.call_request()
-                        songAnime.hasOpenings()
-                        if songAnime.songsBool:
-                            keyboard = [
-                                [InlineKeyboardButton(f"✅",callback_data='yes_option')],
-                                [InlineKeyboardButton(f"❌",callback_data='no_option')]
-                            ]
-                            reply_markup = InlineKeyboardMarkup(keyboard)
-                            await update.message.reply_text(telebot.translatedData(f"You have openings and endings in this anime. Do you wanna to dowloaded?"),reply_markup=reply_markup)
-                        else:
-                            pass
-                    except:
-                        # If an error occurs, notify the user
-                        await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-    else:
-        # If the user did not provide an anime name, prompt them to type an anime name
-        if telebot.language == str:
-            response = "Type your anime (ෆ˙ᵕ˙ෆ)♡"
-            await update.message.reply_text(response)
-        else:
-            response = telebot.translatedData("Type your anime (ෆ˙ᵕ˙ෆ)♡")
-            await update.message.reply_text(response)
-
-"""
-Request Anime by Gender Function
-
-This function handles a user's request for an anime recommendation by genre.
-It interacts with an external anime application to retrieve data based on the user's input and sends
-the information back to the user via a Telegram bot.
-"""
-async def requestgender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Handles the user's request for an anime by genre.
-
-    Parameters:
-    update (Update): The update object that contains all the information about the incoming update.
-    context (ContextTypes.DEFAULT_TYPE): The context object that contains the bot's data and helper functions.
-    """
-    # Get the user's input text and split it into command and genre name
-    user_input = update.message.text.split(maxsplit=1)
-    # Check if the user provided a genre name
-    if len(user_input) > 1:
-        name = user_input[1]
-        # Check if the language setting in the telebot is set to a string (indicating English)
-        if telebot.language == str:
-            # Change the language of the anime application to English
-            animeApp.changeLanguage('en')
-            # Get the genre that closely matches the user's input
-            gender_ = telebot.getSimilarity(name)
-            # If a matching genre is found
-            if gender_!='':
-                try:
-                    # Request anime suggestions by genre from the anime application
-                    animedata = animeApp.getSuggestbyGenre(str(gender_))
-                    # Create a help_info string with the anime data formatted as "key: value"
-                    help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_message.keys(),animedata))
-                    # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-                    if len(help_info)>=1000:help_info = help_info[0:997]+"..."
-                    # Check if the anime is categorized as hentai or erotica
-                    if ('#Hentai' in animedata[3] or '#hentai' in animedata[3]) or ('#Erotica' in animedata[3] or '#erotica' in animedata[3]):
-                        try:
-                            # Notify the user that an anime suggestion is being sent
-                            await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
-                            # Send the anime image and information as a photo with a spoiler warning
-                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
-                        except:
-                            # If an error occurs, notify the user
-                            await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
-                    else:
+                    if not is_adult_content:
                         try:
                             # Notify the user that an anime suggestion is being sent
                             await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
@@ -646,43 +581,42 @@ async def requestgender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                         except:
                             # If an error occurs, notify the user
                             await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
-                except:
-                    # If an error occurs, notify the user
-                    await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
-            else:
-                # If no matching genre is found, notify the user
-                await update.message.reply_text("Error! Maybe your gender is not into the list. ( ˶°ㅁ°) !!\nPlease use the command /showgen to show the genders are available. (˶ᵔ ᵕ ᵔ˶)")
-        elif telebot.language != str:
-            # If the language setting in the telebot is not a string, use the set language
-            animeApp.changeLanguage(telebot.language)
-            # Get the genre that closely matches the user's input
-            gender_ = telebot.getSimilarity(name)
-            # If a matching genre is found
-            if gender_!='':
-                try:
-                    # Request anime suggestions by genre from the anime application
-                    animedata = animeApp.getSuggestbyGenre(str(gender_))
-                    # Create a help_info string with the anime data formatted as "translated key: value"
-                    help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_message.keys(),animedata))
-                    # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-                    if len(help_info)>=1000:help_info = help_info[0:997]+"..."
-                    # Check if the anime is categorized as hentai or erotica
-                    animedata[3] = telebot.translatedData(animedata[3])
-                    if (telebot.translatedData('Hentai') in animedata[3] or telebot.translatedData('hentai') in animedata[3]) or (telebot.translatedData('Erotica') in animedata[3] or telebot.translatedData('erotica') in animedata[3]):
+            except:
+                # If an error occurs, notify the user
+                await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+        elif lang != None:
+            try:
+                telebot.getAbbreviation(str(lang))
+                # If the language setting in the telebot is not a string, use the set language
+                animeApp.changeLanguage(lang)
+                # Change the anime source in the anime application to the user's input
+                animeApp.getOption('useranime')
+                # Request the user-specified anime from the anime application
+                animeApp.changeAnimeSource(name)
+                # Get the anime data from the anime application
+                animedata = animeApp.getAnimeData()
+                # Create a help_info string with the anime data formatted as "translated key: value"
+                help_info = '\n'.join(f'{telebot.translatedData(k)}: {v}'for k,v in zip(telebot.info_message.keys(),animedata))
+                # If the help_info string is longer than 1000 characters, truncate it and add ellipses
+                if len(help_info)>=1000:
+                    help_info = help_info[0:997]+"..."
+                # Check if the anime is categorized as hentai or erotica
+                is_adult_content = ('#Hentai' in animedata[3] or '#hentai' in animedata[3] or '#Erotica' in animedata[3] or '#erotica' in animedata[3])
+                # Check if the anime is categorized as hentai or erotica
+                if is_adult_content and (age is None or age <18):
+                    await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
+                elif is_adult_content and (age>=18):
+                    # Notify the user that an anime suggestion is being sent
+                    await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                    await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
+                else:
+                    if not is_adult_content:
                         try:
                             # Notify the user that an anime suggestion is being sent
-                            await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                            # Send the anime image and information as a photo with a spoiler warning
-                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
-                        except:
-                            # If an error occurs, notify the user
-                            await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-                    else:
-                        try:
-                            # Notify the user that an anime suggestion is being sent
-                            await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
+                            await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
                             # Send the anime image and information as a photo without a spoiler warning
-                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
+                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],    caption=help_info,has_spoiler=False)
+                            animeID = animeApp.getAnimeID()
                             songAnime.changeID(animeApp.getAnimeID())
                             songAnime.call_request()
                             songAnime.hasOpenings()
@@ -698,18 +632,157 @@ async def requestgender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                         except:
                             # If an error occurs, notify the user
                             await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-                except:
-                    # If an error occurs, notify the user
-                    await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-            else:
-                # If no matching genre is found, notify the user
-                await update.message.reply_text(telebot.translatedData("Error! Maybe your gender is not into the list. ( ˶°ㅁ°) !!\nPlease use the command /showgen to show the genders are available. (˶ᵔ ᵕ ᵔ˶)"))
+            except:
+                # If an error occurs, notify the user
+                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
     else:
-        # If the user did not provide a genre name, prompt them to type a genre name
-        if telebot.language == str:
+        # If the user did not provide an anime name, prompt them to type an anime name
+        if lang == None:
             response = "Type your anime (ෆ˙ᵕ˙ෆ)♡"
             await update.message.reply_text(response)
         else:
+            telebot.getAbbreviation(str(lang))
+            response = telebot.translatedData("Type your anime (ෆ˙ᵕ˙ෆ)♡")
+            await update.message.reply_text(response)
+
+"""
+Request Anime by Gender Function
+
+This function handles a user's request for an anime recommendation by genre.
+It interacts with an external anime application to retrieve data based on the user's input and sends
+the information back to the user via a Telegram bot.
+"""
+async def requestgender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Handles the user's request for an anime by genre.
+
+    Parameters:
+    update (Update): The update object that contains all the information about the incoming update.
+    context (ContextTypes.DEFAULT_TYPE): The context object that contains the bot's data and helper functions.
+    """
+    user_id = update.message.from_user['id']
+    lang = get_language(user_id=user_id)
+    age = get_user_age(user_id=user_id)
+    # Get the user's input text and split it into command and genre name
+    user_input = update.message.text.split(maxsplit=1)
+    # Check if the user provided a genre name
+    if len(user_input) > 1:
+        name = user_input[1]
+        # Check if the language setting in the telebot is set to a string (indicating English)
+        if lang == None:
+            try:
+                # Change the language of the anime application to English
+                animeApp.changeLanguage('en')
+                # Get the genre that closely matches the user's input
+                gender_ = telebot.getSimilarity(name)
+                # If a matching genre is found
+                if gender_!='':
+                    try:
+                        # Request anime suggestions by genre from the anime application
+                        animedata = animeApp.getSuggestbyGenre(str(gender_))
+                        # Create a help_info string with the anime data formatted as "key: value"
+                        help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_message.keys(),    animedata))
+                        # If the help_info string is longer than 1000 characters, truncate it and add ellipses
+                        if len(help_info)>=1000:
+                            help_info = help_info[0:997]+"..."
+                        # Check if the anime is categorized as hentai or erotica
+                        is_adult_content = ('#Hentai' in animedata[3] or '#hentai' in animedata[3] or   '#Erotica' in animedata[3] or '#erotica' in animedata[3])
+                        # Check if the anime is categorized as hentai or erotica
+                        if is_adult_content and (age is None or age <18):
+                            await update.message.reply_text("Sorry, we cannot show you this content (◞‸◟；)")
+                        elif is_adult_content and (age>=18):
+                            # Notify the user that an anime suggestion is being sent
+                            await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
+                        else:
+                            if not is_adult_content:
+                                try:
+                                    # Notify the user that an anime suggestion is being sent
+                                    await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                                    # Send the anime image and information as a photo without a spoiler warning
+                                    await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
+                                    songAnime.changeID(animeApp.getAnimeID())
+                                    songAnime.call_request()
+                                    songAnime.hasOpenings()
+                                    if songAnime.songsBool:
+                                        keyboard = [
+                                            [InlineKeyboardButton(f"✅",callback_data='yes_option')],
+                                            [InlineKeyboardButton(f"❌",callback_data='no_option')]
+                                        ]
+                                        reply_markup = InlineKeyboardMarkup(keyboard)
+                                        await update.message.reply_text(f"You have openings and endings in this anime. Do you wanna to dowloaded?",reply_markup=reply_markup)
+                                    else:pass
+                                except:
+                                    # If an error occurs, notify the user
+                                    await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+                    except:pass
+                else:
+                    # If no matching genre is found, notify the user
+                    await update.message.reply_text("Error! Maybe your gender is not into the list. ( ˶°ㅁ°) !!\nPlease use the command /showgen to show the genders are available. (˶ᵔ ᵕ ᵔ˶)")
+            except:
+                await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+        elif lang != None:
+            try:
+                telebot.getAbbreviation(str(lang))
+                # If the language setting in the telebot is not a string, use the set language
+                animeApp.changeLanguage(lang)
+                # Get the genre that closely matches the user's input
+                gender_ = telebot.getSimilarity(name)
+                # If a matching genre is found
+                if gender_!='':
+                    try:
+                        # Request anime suggestions by genre from the anime application
+                        animedata = animeApp.getSuggestbyGenre(str(gender_))
+                        # Create a help_info string with the anime data formatted as "translated key: value"
+                        help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_message.keys(),    animedata))
+                        # If the help_info string is longer than 1000 characters, truncate it and add ellipses
+                        if len(help_info)>=1000:help_info = help_info[0:997]+"..."
+                        # Check if the anime is categorized as hentai or erotica
+                        is_adult_content = ('#Hentai' in animedata[3] or '#hentai' in animedata[3] or '#Erotica' in animedata[3] or '#erotica' in animedata[3])
+                        # Check if the anime is categorized as hentai or erotica
+                        if is_adult_content and (age is None or age <18):
+                            await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
+                        elif is_adult_content and (age>=18):
+                            # Notify the user that an anime suggestion is being sent
+                            await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=True)
+                        else:
+                            if not is_adult_content:
+                                try:
+                                    # Notify the user that an anime suggestion is being sent
+                                    await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                                    # Send the anime image and information as a photo without a spoiler warning
+                                    await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
+                                    songAnime.changeID(animeApp.getAnimeID())
+                                    songAnime.call_request()
+                                    songAnime.hasOpenings()
+                                    if songAnime.songsBool:
+                                        keyboard = [
+                                            [InlineKeyboardButton(f"✅",callback_data='yes_option')],
+                                            [InlineKeyboardButton(f"❌",callback_data='no_option')]
+                                        ]
+                                        reply_markup = InlineKeyboardMarkup(keyboard)
+                                        await update.message.reply_text(telebot.translatedData(f"You have openings and endings in this anime. Do you wanna to dowloaded?"),reply_markup=reply_markup)
+                                    else:pass
+                                except:
+                                    # If an error occurs, notify the user
+                                    await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+                    except:
+                        # If an error occurs, notify the user
+                        await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+                else:
+                    # If no matching genre is found, notify the user
+                    await update.message.reply_text(telebot.translatedData("Error! Maybe your gender is not into the list. ( ˶°ㅁ°) !!\nPlease use the command /showgen to show the genders are available. (˶ᵔ ᵕ ᵔ˶)"))
+            except:
+                # If an error occurs, notify the user
+                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+    else:
+        # If the user did not provide a genre name, prompt them to type a genre name
+        if lang == None:
+            response = "Type your anime (ෆ˙ᵕ˙ෆ)♡"
+            await update.message.reply_text(response)
+        else:
+            telebot.getAbbreviation(str(lang))
             response = telebot.translatedData("Type the gender please (ෆ˙ᵕ˙ෆ)♡")
             await update.message.reply_text(response)
 """
@@ -725,8 +798,11 @@ async def help(update: Update, context:CallbackContext)->None:
     update (Update): The update object that contains all the information about the incoming update.
     context (CallbackContext): The context object that contains the bot's data and helper functions.
     """
+    user_id = update.message.from_user['id']
+    lang = get_language(user_id=user_id)
     # Check if the language setting in the telebot is not a string (indicating a specific language setting)
-    if telebot.language!=str:
+    if lang!=None:
+        telebot.getAbbreviation(str(lang))
         # Create a help_info string with the translated commands and their descriptions
         help_info = '\n'.join(f'/{x}: {telebot.translatedData(y)}'for x,y in telebot.commands_dictionary.items())
         await update.message.reply_text(help_info)
@@ -748,10 +824,24 @@ async def showGen(update:Update, context:CallbackContext) -> None:
 """
 async def handle_non_command_message(update:Update, context: CallbackContext) -> None:
     text = update.message.text
-    if telebot.language==str and  (not text.startswith("/")):
-        await update.message.reply_text("Hey! I didn't receive a command ( • ᴖ • ｡)")
-    elif telebot.language!=str and  (not text.startswith("/")):
-        await update.message.reply_text(telebot.translatedData("Hey! I didn't receive a command ( • ᴖ • ｡)"))
+    user_data = update.message.from_user
+    lang = get_language(user_id=user_data['id'])
+    if 'awaiting_age' in context.user_data:
+        try:
+            updateAge(user_data['id'],text)
+            await update.message.reply_text("Ok!")
+            del context.user_data['awaiting_age']
+        except:
+            if lang == None:await update.message.reply_text("Error! ( • ᴖ • ｡")
+            else:
+                telebot.getAbbreviation(str(lang))
+                await update.message.reply_text(telebot.translatedData("Error! ( • ᴖ • ｡"))
+    else:
+        if lang == None and  (not text.startswith("/")):
+            await update.message.reply_text("Hey! I didn't receive a command ( • ᴖ • ｡)")
+        elif lang != None and  (not text.startswith("/")):
+            telebot.getAbbreviation(str(lang))
+            await update.message.reply_text(telebot.translatedData("Hey! I didn't receive a command ( • ᴖ • ｡)"))
 
 #Fucntions for Manga commands
 async def requestRandomManga(update: Update, context: CallbackContext) -> None:
@@ -762,69 +852,77 @@ async def requestRandomManga(update: Update, context: CallbackContext) -> None:
     update (Update): The update object that contains all the information about the incoming update.
     context (CallbackContext): The context object that contains the bot's data and helper functions.
     """
+    user_id = update.message.from_user['id']
+    lang = get_language(user_id=user_id)
+    age = get_user_age(user_id=user_id)
     # Check if the language setting in the telebot is set to a string (indicating English)
-    if telebot.language == str:
-        # Change the language of the anime application to English
-        mangaApp.changeLanguage('en')
-        # Request a random anime from the anime application
-        mangaApp.getOption('randmanga')
-        # Get the anime data from the anime application
-        mangadata = mangaApp.getMangaData()
-        # Create a help_info string with the anime data formatted as "key: value"
-        help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_manga.keys(),mangadata))
-        # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-        if len(help_info)>=1000:help_info = help_info[0:997]+"..."
-        # Check if the anime is categorized as hentai or erotica
-        if ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7]) or ('#Erotica' in mangadata[7] or '#erotica' in mangadata[7]):
-            try:
+    if lang == None:
+        try:
+            # Change the language of the anime application to English
+            mangaApp.changeLanguage('en')
+            # Request a random anime from the anime application
+            mangaApp.getOption('randmanga')
+            # Get the anime data from the anime application
+            mangadata = mangaApp.getMangaData()
+            # Create a help_info string with the anime data formatted as "key: value"
+            help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_manga.keys(),mangadata))
+            # If the help_info string is longer than 1000 characters, truncate it and add ellipses
+            if len(help_info)>=1000:
+                help_info = help_info[0:997]+"..."
+            is_adult_content = ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7] or '#Erotica' in mangadata[7] or '#erotica' in mangadata[7])
+            # Check if the anime is categorized as hentai or erotica
+            if is_adult_content and (age is None or age <18):
+                await update.message.reply_text("Sorry, we cannot show you this content (◞‸◟；)")
+            elif is_adult_content and (age>=18):
                 # Notify the user that an anime suggestion is being sent
                 await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
-                # Send the anime image and information as a photo with a spoiler warning
                 await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
-        else:
-            try:
+            else:
+                if not is_adult_content:
+                    try:
+                        # Notify the user that an anime suggestion is being sent
+                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                        # Send the anime image and information as a photo without a spoiler warning
+                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
+                    except:
+                        # If an error occurs, notify the user
+                        await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+        except:await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+    elif lang != None:
+        try:
+            telebot.getAbbreviation(str(lang))
+            # If the language setting in the telebot is not a string, use the set language
+            mangaApp.changeLanguage(lang)
+            # Request a random anime from the anime application
+            mangaApp.getOption('randmanga')
+            # Get the anime data from the anime application
+            mangadata = mangaApp.getMangaData()
+            # Create a help_info string with the anime data formatted as "translated key: value"
+            help_info = '\n'.join(f'{telebot.translatedData(k)}: {v}'for k,v in zip(telebot.info_manga.keys(),mangadata))
+            # If the help_info string is longer than 1000 characters, truncate it and add ellipses
+            if len(help_info)>=1000:
+                help_info = help_info[0:997]+"..."
+            # Check if the anime is categorized as hentai or erotica
+            is_adult_content = ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7] or '#Erotica' in mangadata[7] or '#erotica' in mangadata[7])
+            # Check if the anime is categorized as hentai or erotica
+            if is_adult_content and (age is None or age <18):
+                await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
+            elif is_adult_content and (age>=18):
                 # Notify the user that an anime suggestion is being sent
-                await update.message.reply_text("Ok! ⸜(｡˃ ᵕ ˂ )⸝♡.")
-                # Send the anime image and information as a photo without a spoiler warning
-                await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-    elif telebot.language != str:
-        # If the language setting in the telebot is not a string, use the set language
-        mangaApp.changeLanguage(telebot.language)
-        # Request a random anime from the anime application
-        mangaApp.getOption('randmanga')
-        # Get the anime data from the anime application
-        mangadata = mangaApp.getMangaData()
-        # Create a help_info string with the anime data formatted as "translated key: value"
-        help_info = '\n'.join(f'{telebot.translatedData(k)}: {v}'for k,v in zip(telebot.info_manga.keys(),mangadata))
-        # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-        if len(help_info)>=1000:help_info = help_info[0:997]+"..."
-        mangadata[7] = telebot.translatedData(mangadata[7])
-        # Check if the anime is categorized as hentai or erotica
-        
-        if (telebot.translatedData('#Hentai') in mangadata[7] or telebot.translatedData('#hentai') in mangadata[7]) or (telebot.translatedData('#Erotica') in mangadata[7] or telebot.translatedData('#erotica') in mangadata[7]):
-            try:
-                # Notify the user that an anime suggestion is being sent
-                await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                # Send the anime image and information as a photo with a spoiler warning
+                await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
                 await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-        else:
-            try:
-                # Notify the user that an anime suggestion is being sent
-                await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                # Send the anime image and information as a photo without a spoiler warning
-                await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+            else:
+                if not is_adult_content:
+                    try:
+                        # Notify the user that an anime suggestion is being sent
+                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                        # Send the anime image and information as a photo without a spoiler warning
+                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
+                    except:
+                        # If an error occurs, notify the user
+                        await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+        except:
+            await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
 async def requestManga(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Handles the user's request for an anime by name.
@@ -833,18 +931,21 @@ async def requestManga(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     update (Update): The update object that contains all the information about the incoming update.
     context (ContextTypes.DEFAULT_TYPE): The context object that contains the bot's data and helper functions.
     """
+    user_id = update.message.from_user['id']
+    lang = get_language(user_id=user_id)
+    age = get_user_age(user_id=user_id)
     # Get the user's input text and split it into command and anime name
     user_input = update.message.text.split(maxsplit=1)
     # Check if the user provided an anime name
     if len(user_input) > 1:
         name = user_input[1]
         # Check if the language setting in the telebot is set to a string (indicating English)
-        if telebot.language == str:
-            # Change the language of the anime application to English
-            mangaApp.changeLanguage('en')
-            # Change the anime source in the anime application to the user's input
-            mangaApp.changemangaSource(str(name))
+        if lang == None:
             try:
+                # Change the language of the anime application to English
+                mangaApp.changeLanguage('en')
+                # Change the anime source in the anime application to the user's input
+                mangaApp.changemangaSource(str(name))
                 # Request the user-specified anime from the anime application
                 mangaApp.getOption('usermanga')
                 # Get the anime data from the anime application
@@ -852,71 +953,70 @@ async def requestManga(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 # Create a help_info string with the anime data formatted as "key: value"
                 help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_manga.keys(),mangadata))
                 # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-                if len(help_info)>=1000:help_info = help_info[0:997]+"..."
+                if len(help_info)>=1000:
+                    help_info = help_info[0:997]+"..."
                 # Check if the anime is categorized as hentai or erotica
-                if ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7]) or ('#Erotica' in mangadata[7] or '#erotica' in mangadata[7]):
-                    try:
-                        # Notify the user that an anime suggestion is being sent
-                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
-                        # Send the anime image and information as a photo with a spoiler warning
-                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
-                    except:
-                        # If an error occurs, notify the user
-                        await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+                is_adult_content = ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7] or '#Erotica'in mangadata[7] or '#erotica' in mangadata[7])
+                # Check if the anime is categorized as hentai or erotica
+                if is_adult_content and (age is None or age <18):
+                    await update.message.reply_text("Sorry, we cannot show you this content (◞‸◟；)")
+                elif is_adult_content and (age>=18):
+                    # Notify the user that an anime suggestion is being sent
+                    await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                    await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
                 else:
-                    try:
-                        # Notify the user that an anime suggestion is being sent
-                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
-                        # Send the anime image and information as a photo without a spoiler warning
-                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
-                    except:
-                        # If an error occurs, notify the user
-                        await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+                    if not is_adult_content:
+                        try:
+                            # Notify the user that an anime suggestion is being sent
+                            await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                            # Send the anime image and information as a photo without a spoiler warning
+                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
+                        except:
+                            # If an error occurs, notify the user
+                            await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
             except:
-                # If an error occurs, notify the user
                 await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
-        elif telebot.language != str:
+        elif lang != None:
+            telebot.getAbbreviation(str(lang))
             # If the language setting in the telebot is not a string, use the set language
-            mangaApp.changeLanguage(telebot.language)
+            mangaApp.changeLanguage(lang)
             # Change the anime source in the anime application to the user's input
             mangaApp.getOption('usermanga')
-            try:
-                # Request the user-specified anime from the anime application
-                mangaApp.changemangaSource(name)
-                # Get the anime data from the anime application
-                mangadata = mangaApp.getMangaData()
-                # Create a help_info string with the anime data formatted as "translated key: value"
-                help_info = '\n'.join(f'{telebot.translatedData(k)}: {v}'for k,v in zip(telebot.info_manga.keys(),mangadata))
-                # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-                if len(help_info)>=1000:help_info = help_info[0:997]+"..."
-                # Check if the anime is categorized as hentai or erotica
-                if (telebot.translatedData('#Hentai') in mangadata[7] or telebot.translatedData('#hentai') in mangadata[7]) or (telebot.translatedData('#Erotica') in mangadata[7] or telebot.translatedData('#erotica') in mangadata[7]):
+            # Request the user-specified anime from the anime application
+            mangaApp.changemangaSource(name)
+            # Get the anime data from the anime application
+            mangadata = mangaApp.getMangaData()
+            # Create a help_info string with the anime data formatted as "translated key: value"
+            help_info = '\n'.join(f'{telebot.translatedData(k)}: {v}'for k,v in zip(telebot.info_manga.keys(),mangadata))
+            # If the help_info string is longer than 1000 characters, truncate it and add ellipses
+            if len(help_info)>=1000:
+                help_info = help_info[0:997]+"..."
+            # Check if the anime is categorized as hentai or erotica
+            is_adult_content = ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7] or '#Erotica'in mangadata[7] or '#erotica' in mangadata[7])
+            # Check if the anime is categorized as hentai or erotica
+            if is_adult_content and (age is None or age <18):
+                await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
+            elif is_adult_content and (age>=18):
+                # Notify the user that an anime suggestion is being sent
+                await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
+            else:
+                if not is_adult_content:
                     try:
                         # Notify the user that an anime suggestion is being sent
-                        await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                        # Send the anime image and information as a photo with a spoiler warning
-                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
-                    except:
-                        # If an error occurs, notify the user
-                        await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-                else:
-                    try:
-                        # Notify the user that an anime suggestion is being sent
-                        await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
+                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
                         # Send the anime image and information as a photo without a spoiler warning
                         await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
                     except:
                         # If an error occurs, notify the user
                         await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-            except:
-                # If an error occurs, notify the user
-                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
     else:
         # If the user did not provide an anime name, prompt them to type an anime name
-        if telebot.language == str:
+        if lang == None:
             response = "Type your manga (ෆ˙ᵕ˙ෆ)♡"
             await update.message.reply_text(response)
         else:
+            telebot.getAbbreviation(str(lang))
             response = telebot.translatedData("Type your manga (ෆ˙ᵕ˙ෆ)♡")
             await update.message.reply_text(response)
 
@@ -928,13 +1028,16 @@ async def requestGenderManga(update: Update, context: ContextTypes.DEFAULT_TYPE)
     update (Update): The update object that contains all the information about the incoming update.
     context (ContextTypes.DEFAULT_TYPE): The context object that contains the bot's data and helper functions.
     """
+    user_id = update.message.from_user['id']
+    lang = get_language(user_id=user_id)
+    age = get_user_age(user_id=user_id)
     # Get the user's input text and split it into command and genre name
     user_input = update.message.text.split(maxsplit=1)
     # Check if the user provided a genre name
     if len(user_input) > 1:
         name = user_input[1]
         # Check if the language setting in the telebot is set to a string (indicating English)
-        if telebot.language == str:
+        if lang == None:
             # Change the language of the anime application to English
             mangaApp.changeLanguage('en')
             # Get the genre that closely matches the user's input
@@ -947,35 +1050,35 @@ async def requestGenderManga(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     # Create a help_info string with the anime data formatted as "key: value"
                     help_info = '\n'.join(f'{k}: {v}'for k,v in zip(telebot.info_manga.keys(),mangadata))
                     # If the help_info string is longer than 1000 characters, truncate it and add ellipses
-                    if len(help_info)>=1000:help_info = help_info[0:997]+"..."
+                    if len(help_info)>=1000:
+                        help_info = help_info[0:997]+"..."
                     # Check if the anime is categorized as hentai or erotica
-                    if ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7]) or ('#Erotica' in mangadata[7] or '#erotica' in mangadata[7]):
-                        try:
-                            # Notify the user that an anime suggestion is being sent
-                            await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
-                            # Send the anime image and information as a photo with a spoiler warning
-                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
-                        except:
-                            # If an error occurs, notify the user
-                            await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+                    is_adult_content = ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7] or '#Erotica'in mangadata[7] or '#erotica' in mangadata[7])
+                    # Check if the anime is categorized as hentai or erotica
+                    if is_adult_content and (age is None or age <18):
+                        await update.message.reply_text("Sorry, we cannot show you this content (◞‸◟；)")
+                    elif is_adult_content and (age>=18):
+                        # Notify the user that an anime suggestion is being sent
+                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
                     else:
-                        try:
-                            # Notify the user that an anime suggestion is being sent
-                            await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
-                            # Send the anime image and information as a photo without a spoiler warning
-                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
-                        except:
-                            # If an error occurs, notify the user
-                            await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
-                except:
-                    # If an error occurs, notify the user
-                    await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+                        if not is_adult_content:
+                            try:
+                                # Notify the user that an anime suggestion is being sent
+                                await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                                # Send the anime image and information as a photo without a spoiler warning
+                                await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
+                            except:
+                                # If an error occurs, notify the user
+                                await update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
+                except:update.message.reply_text("Error! Try it again, please. (╥﹏╥)")
             else:
                 # If no matching genre is found, notify the user
                 await update.message.reply_text("Error! Maybe your gender is not into the list. ( ˶°ㅁ°) !!\nPlease use the command /showgen to show the genders are available. (˶ᵔ ᵕ ᵔ˶)")
-        elif telebot.language != str:
+        elif lang != None:
+            telebot.getAbbreviation(str(lang))
             # If the language setting in the telebot is not a string, use the set language
-            mangaApp.changeLanguage(telebot.language)
+            mangaApp.changeLanguage(lang)
             # Get the genre that closely matches the user's input
             gender_ = telebot.getSimilarity(name)
             # If a matching genre is found
@@ -988,37 +1091,35 @@ async def requestGenderManga(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     # If the help_info string is longer than 1000 characters, truncate it and add ellipses
                     if len(help_info)>=1000:help_info = help_info[0:997]+"..."
                     # Check if the anime is categorized as hentai or erotica
-                    mangadata[7] = telebot.translatedData(mangadata[7])
-                    if (telebot.translatedData('Hentai') in mangadata[7] or telebot.translatedData('hentai') in mangadata[7]) or (telebot.translatedData('Erotica') in mangadata[7] or telebot.translatedData('erotica') in mangadata[7]):
-                        try:
-                            # Notify the user that an anime suggestion is being sent
-                            await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                            # Send the anime image and information as a photo with a spoiler warning
-                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
-                        except:
-                            # If an error occurs, notify the user
-                            await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+                    is_adult_content = ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7] or '#Erotica'in mangadata[7] or '#erotica' in mangadata[7])
+                    # Check if the anime is categorized as hentai or erotica
+                    if is_adult_content and (age is None or age <18):
+                        await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
+                    elif is_adult_content and (age>=18):
+                        # Notify the user that an anime suggestion is being sent
+                        await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                        await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=True)
                     else:
-                        try:
-                            # Notify the user that an anime suggestion is being sent
-                            await update.message.reply_text(telebot.translatedData("Ok!⸜(｡˃ ᵕ ˂ )⸝♡"))
-                            # Send the anime image and information as a photo without a spoiler warning
-                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
-                        except:
-                            # If an error occurs, notify the user
-                            await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
-                except:
-                    # If an error occurs, notify the user
-                    await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+                        if not is_adult_content:
+                            try:
+                                # Notify the user that an anime suggestion is being sent
+                                await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
+                                # Send the anime image and information as a photo without a spoiler warning
+                                await context.bot.send_photo(chat_id=update.message.chat_id,photo=mangadata[11],caption=help_info,has_spoiler=False)
+                            except:
+                                # If an error occurs, notify the user
+                                await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
+                except:await update.message.reply_text(telebot.translatedData("Error! Try it again, please. (╥﹏╥)"))
             else:
                 # If no matching genre is found, notify the user
                 await update.message.reply_text(telebot.translatedData("Error! Maybe your gender is not into the list. ( ˶°ㅁ°) !!\nPlease use the command /showgen to show the genders are available. (˶ᵔ ᵕ ᵔ˶)"))
     else:
         # If the user did not provide a genre name, prompt them to type a genre name
-        if telebot.language == str:
+        if lang == None:
             response = "Type your anime (ෆ˙ᵕ˙ෆ)♡"
             await update.message.reply_text(response)
         else:
+            telebot.getAbbreviation(str(lang))
             response = telebot.translatedData("Type the gender please (ෆ˙ᵕ˙ෆ)♡")
             await update.message.reply_text(response)
 
