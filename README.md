@@ -5,7 +5,7 @@
 <h1 align="center">🌸 hoshiiTelegramBot 🌸</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.1..0-brightgreen" alt="Version" />
+  <img src="https://img.shields.io/badge/version-1.2.1-brightgreen" alt="Version" />
   <img src="https://img.shields.io/badge/license-AGPL3.0-blue?style=flat&color=blue" alt="License" />
   <img src="https://img.shields.io/badge/test-passed-pass?style=flat&color=red" alt="Build" />
 </p>
