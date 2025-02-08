@@ -345,7 +345,7 @@ async def handle_songs_download(update: Update, context: ContextTypes.DEFAULT_TY
                         )
                 except Exception as e:
                     # Send a failure message if an exception occurs
-                    failure_message = telebot.translatedData("Failed! (╥﹏╥)") if lang is not None   else"Failed! (╥﹏╥)"
+                    failure_message = telebot.translatedData("Failed! (╥﹏╥)") if lang is not None else "Failed! (╥﹏╥)"
                     await update.callback_query.message.reply_text(failure_message)
         # Pause for 3 seconds before cleaning up the directory
         time.sleep(3)
@@ -601,7 +601,7 @@ async def requestAnime(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 if len(help_info)>=1000:
                     help_info = help_info[0:997]+"..."
                 # Check if the anime is categorized as hentai or erotica
-                is_adult_content = ('#Hentai' in animedata[3] or '#hentai' in animedata[3] or '#Erotica' in animedata[3] or '#erotica' in animedata[3])
+                is_adult_content = (telebot.translatedData('#Hentai') in animedata[3] or telebot.translatedData('#hentai') in animedata[3] or telebot.translatedData('#Erotica') in animedata[3] or telebot.translatedData('#erotica') in animedata[3])
                 # Check if the anime is categorized as hentai or erotica
                 if is_adult_content and (age is None or age <18):
                     await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
@@ -615,7 +615,7 @@ async def requestAnime(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                             # Notify the user that an anime suggestion is being sent
                             await update.message.reply_text("Ok!⸜(｡˃ ᵕ ˂ )⸝♡")
                             # Send the anime image and information as a photo without a spoiler warning
-                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],    caption=help_info,has_spoiler=False)
+                            await context.bot.send_photo(chat_id=update.message.chat_id,photo=animedata[10],caption=help_info,has_spoiler=False)
                             animeID = animeApp.getAnimeID()
                             songAnime.changeID(animeApp.getAnimeID())
                             songAnime.call_request()
@@ -738,7 +738,7 @@ async def requestgender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                         # If the help_info string is longer than 1000 characters, truncate it and add ellipses
                         if len(help_info)>=1000:help_info = help_info[0:997]+"..."
                         # Check if the anime is categorized as hentai or erotica
-                        is_adult_content = ('#Hentai' in animedata[3] or '#hentai' in animedata[3] or '#Erotica' in animedata[3] or '#erotica' in animedata[3])
+                        is_adult_content = (telebot.translatedData('#Hentai') in animedata[3] or telebot.translatedData('#hentai') in animedata[3] or telebot.translatedData('#Erotica') in animedata[3] or telebot.translatedData('#erotica') in animedata[3])
                         # Check if the anime is categorized as hentai or erotica
                         if is_adult_content and (age is None or age <18):
                             await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
@@ -903,7 +903,7 @@ async def requestRandomManga(update: Update, context: CallbackContext) -> None:
             if len(help_info)>=1000:
                 help_info = help_info[0:997]+"..."
             # Check if the anime is categorized as hentai or erotica
-            is_adult_content = ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7] or '#Erotica' in mangadata[7] or '#erotica' in mangadata[7])
+            is_adult_content = (telebot.translatedData('#Hentai') in mangadata[7] or telebot.translatedData('#hentai') in mangadata[7] or telebot.translatedData('#Erotica') in mangadata[7] or telebot.translatedData('#erotica') in mangadata[7])
             # Check if the anime is categorized as hentai or erotica
             if is_adult_content and (age is None or age <18):
                 await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
@@ -992,7 +992,7 @@ async def requestManga(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             if len(help_info)>=1000:
                 help_info = help_info[0:997]+"..."
             # Check if the anime is categorized as hentai or erotica
-            is_adult_content = ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7] or '#Erotica'in mangadata[7] or '#erotica' in mangadata[7])
+            is_adult_content = (telebot.translatedData('#Hentai') in mangadata[7] or telebot.translatedData('#hentai') in mangadata[7] or telebot.translatedData('#Erotica') in mangadata[7] or telebot.translatedData('#erotica') in mangadata[7])
             # Check if the anime is categorized as hentai or erotica
             if is_adult_content and (age is None or age <18):
                 await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
@@ -1091,7 +1091,7 @@ async def requestGenderManga(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     # If the help_info string is longer than 1000 characters, truncate it and add ellipses
                     if len(help_info)>=1000:help_info = help_info[0:997]+"..."
                     # Check if the anime is categorized as hentai or erotica
-                    is_adult_content = ('#Hentai' in mangadata[7] or '#hentai' in mangadata[7] or '#Erotica'in mangadata[7] or '#erotica' in mangadata[7])
+                    is_adult_content = (telebot.translatedData('#Hentai') in mangadata[7] or telebot.translatedData('#hentai') in mangadata[7] or telebot.translatedData('#Erotica') in mangadata[7] or telebot.translatedData('#erotica') in mangadata[7])
                     # Check if the anime is categorized as hentai or erotica
                     if is_adult_content and (age is None or age <18):
                         await update.message.reply_text(telebot.translatedData("Sorry, we cannot show you this content (◞‸◟；)"))
